@@ -24,7 +24,6 @@ Openthedoor 不做 Agent，而是做 **Agent 之间的连接层**——一个让
 ## Constraints
 
 - 依托 OpenClaw 生态，不自己做 Agent 运行时
-- 技术路线选择 skill 模式而非 MCP 模式
 - 第一个垂直领域限定为开发者岗位
 - 开源/研究项目，不以盈利为首要目标
 - 需要有 Web Dashboard 让用户查看档案、对谈记录和匹配结果
