@@ -3,6 +3,7 @@
 Root planning guide for this repository.
 
 Planning structure:
+
 - exploration happens in conversation and focused docs
 - implementation-ready plans go in `exec-plans/active/`
 - completed plans move to `exec-plans/completed/`

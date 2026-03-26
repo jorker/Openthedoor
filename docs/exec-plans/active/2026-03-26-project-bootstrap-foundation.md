@@ -38,11 +38,11 @@
 **Completed tasks:**
 
 - [x] Task 1: Restore a working lint gate
-  Commits: `fa15282`, `82f2447`
+      Commits: `fa15282`, `82f2447`
 - [x] Task 2: Add the first Vitest loop and fix the first exposed bug
-  Commit: `996a367`
+      Commit: `996a367`
 - [x] Task 3: Support `@/` imports and add a second representative test
-  Commit: `b0218ba`
+      Commit: `b0218ba`
 
 **In-progress task:**
 
@@ -324,7 +324,6 @@ Local-first product development setup for this repository.
    ```
 
 2. Configure local environment:
-
    - keep local values in `.env.development`
    - use the existing local PostgreSQL connection defined there
 

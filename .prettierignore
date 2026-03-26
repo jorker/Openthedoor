@@ -55,10 +55,6 @@ src/shared/components
 .gstack
 .worktrees
 
-# Repo docs/content are not formatted yet; exclude for now so `pnpm check` can be a stable baseline gate.
+# Protected files we are explicitly not allowed to edit in this task.
 AGENTS.md
 CLAUDE.md
-ARCHITECTURE.md
-context
-docs
-openspec

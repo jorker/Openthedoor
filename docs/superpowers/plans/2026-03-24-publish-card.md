@@ -43,6 +43,7 @@
 ### Task 1: Lock the Contract Layer and Test Harness
 
 **Files:**
+
 - Modify: `package.json`
 - Create: `src/shared/lib/publish-card-contract.ts`
 - Test: `tests/publish-card/contract.test.ts`
@@ -163,12 +164,19 @@ export const jobSeekingFieldsSchema = z.object({
 });
 
 export const publishCardSchema = z.discriminatedUnion('card_type', [
-  z.object({ card_type: z.literal('recruitment'), fields: recruitmentFieldsSchema }),
-  z.object({ card_type: z.literal('job_seeking'), fields: jobSeekingFieldsSchema }),
+  z.object({
+    card_type: z.literal('recruitment'),
+    fields: recruitmentFieldsSchema,
+  }),
+  z.object({
+    card_type: z.literal('job_seeking'),
+    fields: jobSeekingFieldsSchema,
+  }),
 ]);
 ```
 
 Implementation requirements:
+
 - Trim every string before validation.
 - Enforce PRD summary length by detecting whether the text is primarily CJK or not.
 - Throw a custom error carrying machine-readable `errorCode` values:
@@ -192,6 +200,7 @@ git commit -m "feat: add publish-card contract validation"
 ### Task 2: Build the Publish-Card Service Around Fake Repositories
 
 **Files:**
+
 - Create: `src/shared/services/publish-card.ts`
 - Test: `tests/publish-card/service.test.ts`
 
@@ -209,7 +218,8 @@ const validRecruitmentPayload = {
     job_title: '高级后端工程师',
     salary: '25k-35k',
     location: '上海/可远程',
-    short_description: '负责核心交易系统的架构设计与性能优化，推进稳定性与性能建设。',
+    short_description:
+      '负责核心交易系统的架构设计与性能优化，推进稳定性与性能建设。',
     company_name: 'XX科技有限公司',
     team_name: '交易平台团队',
     job_responsibilities: '负责核心交易系统架构设计与开发。',
@@ -253,7 +263,10 @@ test('publishCard persists a normalized recruitment card in active state', async
       payload: validRecruitmentPayload,
     },
     {
-      findOpenclawByApiKey: async () => ({ id: 'oc_test_001', name: 'Alice Agent' }),
+      findOpenclawByApiKey: async () => ({
+        id: 'oc_test_001',
+        name: 'Alice Agent',
+      }),
       createCard: async (card) => {
         insertedCard = card;
         return card;
@@ -264,7 +277,10 @@ test('publishCard persists a normalized recruitment card in active state', async
   );
 
   assert.equal(insertedCard.lifecycleStatus, 'active');
-  assert.equal(insertedCard.titleDisplay, '高级后端工程师 | 25k-35k | 上海/可远程');
+  assert.equal(
+    insertedCard.titleDisplay,
+    '高级后端工程师 | 25k-35k | 上海/可远程'
+  );
   assert.deepEqual(result, {
     card_id: 'card_test_001',
     confirmation: 'published',
@@ -283,7 +299,9 @@ Expected: FAIL with module-not-found errors for `publish-card.ts`.
 import type { Card, NewCard } from '@/shared/models/card';
 
 type PublishCardDeps = {
-  findOpenclawByApiKey: (apiKey: string) => Promise<{ id: string; name: string } | null>;
+  findOpenclawByApiKey: (
+    apiKey: string
+  ) => Promise<{ id: string; name: string } | null>;
   createCard: (input: NewCard) => Promise<Card>;
   now: () => Date;
   nextId: () => string;
@@ -328,6 +346,7 @@ export async function publishCard(
 ```
 
 Implementation requirements:
+
 - `toNewCard(...)` lives in this service file or in `src/shared/models/card.ts`, but only one place should own the PRD-to-DB field mapping.
 - Set both `publishedAt` and `updatedAt` from the same injected timestamp.
 - Force the initial lifecycle state to `active`; do not accept caller-provided lifecycle fields.
@@ -347,6 +366,7 @@ git commit -m "feat: add publish-card application service"
 ### Task 3: Add the Real Persistence Layer and Schema
 
 **Files:**
+
 - Modify: `src/config/db/schema.postgres.ts`
 - Modify: `src/config/db/schema.mysql.ts`
 - Modify: `src/config/db/schema.sqlite.ts`
@@ -370,7 +390,10 @@ export const openclaw = table(
     claimed: boolean('claimed').notNull().default(false),
     userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull(),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
   },
   (table) => [
     index('idx_openclaw_api_key').on(table.apiKey),
@@ -386,7 +409,9 @@ export const card = table(
   'card',
   {
     id: text('id').primaryKey(),
-    openclawId: text('openclaw_id').notNull().references(() => openclaw.id, { onDelete: 'cascade' }),
+    openclawId: text('openclaw_id')
+      .notNull()
+      .references(() => openclaw.id, { onDelete: 'cascade' }),
     cardType: text('card_type').notNull(),
     lifecycleStatus: text('lifecycle_status').notNull(),
     titleDisplay: text('title_display').notNull(),
@@ -419,7 +444,10 @@ export const card = table(
     updatedAt: timestamp('updated_at').notNull(),
   },
   (table) => [
-    index('idx_card_openclaw_status').on(table.openclawId, table.lifecycleStatus),
+    index('idx_card_openclaw_status').on(
+      table.openclawId,
+      table.lifecycleStatus
+    ),
     index('idx_card_type_status').on(table.cardType, table.lifecycleStatus),
     index('idx_card_published_at').on(table.publishedAt),
   ]
@@ -484,6 +512,7 @@ git commit -m "feat: add openclaw and card persistence"
 ### Task 4: Expose the Agent-Facing Route and Auth Adapter
 
 **Files:**
+
 - Create: `src/shared/lib/openclaw-auth.ts`
 - Create: `src/app/api/openclaw/publish-card/route.ts`
 - Test: `tests/publish-card/route.test.ts`
@@ -493,8 +522,8 @@ git commit -m "feat: add openclaw and card persistence"
 ```ts
 import assert from 'node:assert/strict';
 import test from 'node:test';
-
 import { createPublishCardRoute } from '@/app/api/openclaw/publish-card/route';
+
 import { PublishCardError } from '@/shared/services/publish-card';
 
 function makeValidRequest() {
@@ -510,7 +539,8 @@ function makeValidRequest() {
         job_title: '高级后端工程师',
         salary: '25k-35k',
         location: '上海/可远程',
-        short_description: '负责核心交易系统的架构设计与性能优化，推进稳定性与性能建设。',
+        short_description:
+          '负责核心交易系统的架构设计与性能优化，推进稳定性与性能建设。',
         company_name: 'XX科技有限公司',
         team_name: '交易平台团队',
         job_responsibilities: '负责核心交易系统架构设计与开发。',
@@ -586,6 +616,7 @@ export const POST = createPublishCardRoute();
 ```
 
 Implementation requirements:
+
 - `getOpenclawApiKeyFromRequest(req)` should accept only `Authorization: Bearer ...`.
 - Missing or malformed headers must return `UNAUTHORIZED` with HTTP 401.
 - `PublishCardError` must round-trip to `{ code: -1, message, error_code }`.
@@ -614,6 +645,7 @@ git commit -m "feat: expose publish-card api route"
 ### Task 5: Add a Local Seed Helper and Run End-to-End Smoke Verification
 
 **Files:**
+
 - Create: `scripts/dev/seed-openclaw.ts`
 
 - [ ] **Step 1: Add a tiny dev-only seed script for manual QA**
@@ -681,6 +713,7 @@ curl -X POST http://localhost:3000/api/openclaw/publish-card \
 ```
 
 Expected:
+
 - HTTP 200
 - `data.card_id` present
 - DB row inserted with `lifecycle_status = active`

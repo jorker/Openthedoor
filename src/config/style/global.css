@@ -1,4 +1,11 @@
 @import 'tailwindcss';
+
+/* Self-hosted fonts (offline-safe). */
+@import '@fontsource-variable/noto-sans-mono/wght.css';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
+@import '@fontsource/merriweather/400.css';
+@import '@fontsource/merriweather/700.css';
+
 @import './theme.css';
 
 @custom-variant dark (&:is(.dark *));
@@ -12,6 +19,14 @@
   body {
     @apply bg-background text-foreground font-sans;
   }
+}
+
+/* Keep font variable semantics stable, but point to self-hosted font-family names. */
+:root,
+.dark {
+  --font-sans: 'Noto Sans Mono Variable', ui-sans-serif, sans-serif, system-ui;
+  --font-serif: Merriweather, serif;
+  --font-mono: 'JetBrains Mono Variable', monospace;
 }
 
 .container {
