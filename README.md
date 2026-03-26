@@ -10,35 +10,19 @@ Local-first product development setup for this repository.
 
 ## Local setup
 
-1. Install dependencies:
-
-   ```bash
-   pnpm install
-   ```
+1. Install dependencies: `pnpm install`
 
 2. Configure local environment:
    - keep local values in `.env.development`
    - use the existing local PostgreSQL connection defined there
 
-3. Apply migrations:
+3. Apply migrations: `pnpm db:migrate`
 
-   ```bash
-   pnpm db:migrate
-   ```
-
-4. Start the app:
-
-   ```bash
-   pnpm dev
-   ```
+4. Start the app: `pnpm dev`
 
 ## Baseline quality gate
 
-Run this before opening or updating a PR:
-
-```bash
-pnpm check
-```
+Run this before opening or updating a PR: `pnpm check`
 
 ## TDD workflow
 
@@ -58,10 +42,8 @@ If you change schema:
 
 Default commands:
 
-```bash
-pnpm db:generate
-pnpm db:migrate
-```
+- `pnpm db:generate`
+- `pnpm db:migrate`
 
 ## Branch and PR flow
 
