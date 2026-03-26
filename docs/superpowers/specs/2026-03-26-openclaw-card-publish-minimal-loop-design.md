@@ -1,7 +1,7 @@
 # Openclaw Card Publish Minimal Loop Design
 
 **Date:** 2026-03-26
-**Status:** Approved in conversation, written-spec review pending
+**Status:** Approved in conversation, locally reviewed, pending user review
 **Scope:** Minimal end-to-end publish loop for Openclaw-submitted job-seeking and recruitment cards
 
 ## Context
@@ -55,6 +55,27 @@ Explicitly out of scope:
 - platform-side document ingestion
 - any backend responsibility for extracting text from source documents
 - any runtime dependency on a completed human onboarding flow
+
+Minimal sequence flow:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Openclaw
+    participant Skill
+    participant API as publish-card API
+    participant DB
+
+    User->>Openclaw: provide resume or JD outside platform
+    Openclaw->>Skill: follow publish contract
+    Skill-->>Openclaw: envelope rules, forbidden fields, recovery guidance
+    Openclaw->>API: POST /api/openclaw/cards/publish
+    API->>API: authenticate api key
+    API->>API: validate envelope and forbidden fields
+    API->>DB: store metadata + payload_json
+    DB-->>API: persisted card record
+    API-->>Openclaw: success or structured validation errors
+```
 
 ### 2. Test Identity Strategy
 
@@ -133,6 +154,18 @@ For this slice, `published` means only:
 
 This semantic limitation must be explicit in the spec to avoid future implementation drift.
 
+Minimal state flow:
+
+```mermaid
+flowchart LR
+    A[request received] --> B{api key valid?}
+    B -->|no| C[reject with invalid_auth]
+    B -->|yes| D{envelope valid?}
+    D -->|no| E[reject with structured guidance]
+    D -->|yes| F[store metadata and payload_json]
+    F --> G[status = published]
+```
+
 ### 7. Server-Generated Fields
 
 The client must not supply server-generated fields.
@@ -160,6 +193,15 @@ Required outcome:
 
 - invalid or missing API keys are rejected
 - the publish path does not depend on session cookies, user sign-in, or claim state
+- the publish path uses an Openclaw-owned publish key, not the repository's existing user-owned API key system
+
+Identity boundary:
+
+- `user auth` remains the identity plane for human website access
+- `user api keys` remain part of the existing user-facing platform model if they continue to exist
+- `openclaw publish key` is a separate identity and permission surface for agent-triggered publish behavior
+
+The first slice should not reuse the current user API key system for Openclaw publishing. The test publisher identity should own its own publish key directly so the loop does not inherit user-auth assumptions before real `register / claim / binding` exists.
 
 ### 9. Storage Model
 
@@ -201,9 +243,9 @@ Suggested shape:
   "message": "validation failed",
   "errors": [
     {
-      "field": "payload.salary",
-      "reason": "required",
-      "guidance": "This field is required for the current request format. Ask the user for the missing information, update the JSON, and send the request again. Do not guess or invent a value."
+      "field": "card_type",
+      "reason": "invalid_value",
+      "guidance": "Set `card_type` to either `job_seeking` or `recruitment`, then send the request again. Do not invent a new card type."
     }
   ]
 }
@@ -298,6 +340,7 @@ This design is successful when:
 
 This design intentionally leaves the following debt to be tracked outside the implementation slice:
 
+- define the long-term relationship model between `user`, `openclaw_publisher`, and their separate key types after real binding flows exist
 - define canonical stable payload schemas for `job_seeking` and `recruitment`
 - add semantic payload validation beyond envelope validation
 - separate future `stored` and `publish_ready` card states
