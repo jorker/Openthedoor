@@ -4,8 +4,8 @@
  */
 
 const BLOCKED_METADATA_HOSTS = new Set([
-  '169.254.169.254',  // AWS/GCP/Azure instance metadata
-  'fd00::',           // IPv6 unique local (metadata in some cloud setups)
+  '169.254.169.254', // AWS/GCP/Azure instance metadata
+  'fd00::', // IPv6 unique local (metadata in some cloud setups)
   'metadata.google.internal', // GCP metadata
 ]);
 
@@ -17,9 +17,10 @@ const BLOCKED_METADATA_HOSTS = new Set([
  */
 function normalizeHostname(hostname: string): string {
   // Strip IPv6 brackets
-  let h = hostname.startsWith('[') && hostname.endsWith(']')
-    ? hostname.slice(1, -1)
-    : hostname;
+  let h =
+    hostname.startsWith('[') && hostname.endsWith(']')
+      ? hostname.slice(1, -1)
+      : hostname;
   // Strip trailing dot
   if (h.endsWith('.')) h = h.slice(0, -1);
   return h;
@@ -36,7 +37,11 @@ function isMetadataIp(hostname: string): boolean {
     const normalized = probe.hostname;
     if (BLOCKED_METADATA_HOSTS.has(normalized)) return true;
     // Also check after stripping trailing dot
-    if (normalized.endsWith('.') && BLOCKED_METADATA_HOSTS.has(normalized.slice(0, -1))) return true;
+    if (
+      normalized.endsWith('.') &&
+      BLOCKED_METADATA_HOSTS.has(normalized.slice(0, -1))
+    )
+      return true;
   } catch {
     // Not a valid hostname — can't be a metadata IP
   }

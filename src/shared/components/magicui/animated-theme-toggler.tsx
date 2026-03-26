@@ -1,10 +1,11 @@
-"use client";
+'use client';
 
-import { Moon, SunDim } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
-import { flushSync } from "react-dom";
-import { cn } from "@/shared/lib/utils";
-import { useTheme } from "next-themes";
+import { useEffect, useRef, useState } from 'react';
+import { Moon, SunDim } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { flushSync } from 'react-dom';
+
+import { cn } from '@/shared/lib/utils';
 
 type props = {
   className?: string;
@@ -18,7 +19,7 @@ export const AnimatedThemeToggler = ({ className }: props) => {
   useEffect(() => {
     setMounted(true);
 
-    setIsDarkMode(theme === "dark");
+    setIsDarkMode(theme === 'dark');
   }, [theme]);
 
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -27,8 +28,8 @@ export const AnimatedThemeToggler = ({ className }: props) => {
 
     await document.startViewTransition(() => {
       flushSync(() => {
-        const dark = document.documentElement.classList.toggle("dark");
-        setTheme(dark ? "dark" : "light");
+        const dark = document.documentElement.classList.toggle('dark');
+        setTheme(dark ? 'dark' : 'light');
         setIsDarkMode(dark);
       });
     }).ready;
@@ -51,8 +52,8 @@ export const AnimatedThemeToggler = ({ className }: props) => {
       },
       {
         duration: 700,
-        easing: "ease-in-out",
-        pseudoElement: "::view-transition-new(root)",
+        easing: 'ease-in-out',
+        pseudoElement: '::view-transition-new(root)',
       }
     );
   };

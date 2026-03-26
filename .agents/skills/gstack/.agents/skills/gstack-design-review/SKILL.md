@@ -9,6 +9,7 @@ description: |
   Proactively suggest when the user mentions visual inconsistencies or
   wants to polish the look of a live site.
 ---
+
 <!-- AUTO-GENERATED from SKILL.md.tmpl — do not edit directly -->
 <!-- Regenerate: bun run gen:skill-docs -->
 
@@ -65,6 +66,7 @@ ask the user about telemetry. Use AskUserQuestion:
 > Change anytime with `gstack-config set telemetry off`.
 
 Options:
+
 - A) Help gstack get better! (recommended)
 - B) No thanks
 
@@ -72,10 +74,11 @@ If A: run `~/.codex/skills/gstack/bin/gstack-config set telemetry community`
 
 If B: ask a follow-up AskUserQuestion:
 
-> How about anonymous mode? We just learn that *someone* used gstack — no unique ID,
+> How about anonymous mode? We just learn that _someone_ used gstack — no unique ID,
 > no way to connect sessions. Just a counter that helps us know if anyone's out there.
 
 Options:
+
 - A) Sure, anonymous is fine
 - B) No thanks, fully off
 
@@ -83,6 +86,7 @@ If B→A: run `~/.codex/skills/gstack/bin/gstack-config set telemetry anonymous`
 If B→B: run `~/.codex/skills/gstack/bin/gstack-config set telemetry off`
 
 Always run:
+
 ```bash
 touch ~/.gstack/.telemetry-prompted
 ```
@@ -92,6 +96,7 @@ This only happens once. If `TEL_PROMPTED` is `yes`, skip this entirely.
 ## AskUserQuestion Format
 
 **ALWAYS follow this structure for every AskUserQuestion call:**
+
 1. **Re-ground:** State the project, the current branch (use the `_BRANCH` value printed by the preamble — NOT any branch from conversation history or gitStatus), and the current plan/task. (1-2 sentences)
 2. **Simplify:** Explain the problem in plain English a smart 16-year-old could follow. No raw function names, no internal jargon, no implementation details. Use concrete examples and analogies. Say what it DOES, not what it's called.
 3. **Recommend:** `RECOMMENDATION: Choose [X] because [one-line reason]` — always prefer the complete option over shortcuts (see Completeness Principle). Include `Completeness: X/10` for each option. Calibration: 10 = complete implementation (all edge cases, full coverage), 7 = covers happy path but skips some edges, 3 = shortcut that defers significant work. If both options are 8+, pick the higher; if one is ≤5, flag it.
@@ -109,18 +114,19 @@ AI-assisted coding makes the marginal cost of completeness near-zero. When you p
 - **Lake vs. ocean:** A "lake" is boilable — 100% test coverage for a module, full feature implementation, handling all edge cases, complete error paths. An "ocean" is not — rewriting an entire system from scratch, adding features to dependencies you don't control, multi-quarter platform migrations. Recommend boiling lakes. Flag oceans as out of scope.
 - **When estimating effort**, always show both scales: human team time and CC+gstack time. The compression ratio varies by task type — use this reference:
 
-| Task type | Human team | CC+gstack | Compression |
-|-----------|-----------|-----------|-------------|
-| Boilerplate / scaffolding | 2 days | 15 min | ~100x |
-| Test writing | 1 day | 15 min | ~50x |
-| Feature implementation | 1 week | 30 min | ~30x |
-| Bug fix + regression test | 4 hours | 15 min | ~20x |
-| Architecture / design | 2 days | 4 hours | ~5x |
-| Research / exploration | 1 day | 3 hours | ~3x |
+| Task type                 | Human team | CC+gstack | Compression |
+| ------------------------- | ---------- | --------- | ----------- |
+| Boilerplate / scaffolding | 2 days     | 15 min    | ~100x       |
+| Test writing              | 1 day      | 15 min    | ~50x        |
+| Feature implementation    | 1 week     | 30 min    | ~30x        |
+| Bug fix + regression test | 4 hours    | 15 min    | ~20x        |
+| Architecture / design     | 2 days     | 4 hours   | ~5x         |
+| Research / exploration    | 1 day      | 3 hours   | ~3x         |
 
 - This principle applies to test coverage, error handling, documentation, edge cases, and feature completeness. Don't skip the last 10% to "save time" — with AI, that 10% costs seconds.
 
 **Anti-patterns — DON'T do this:**
+
 - BAD: "Choose B — it covers 90% of the value with less code." (If A is only 70 lines more, choose A.)
 - BAD: "We can skip edge case handling to save time." (Edge case handling costs minutes with CC.)
 - BAD: "Let's defer test coverage to a follow-up PR." (Tests are the cheapest lake to boil.)
@@ -152,7 +158,9 @@ Hey gstack team — ran into this while using /{skill-name}:
 
 ## Raw output
 ```
+
 {paste the actual error or unexpected output here}
+
 ```
 
 ## What would make this a 10
@@ -166,6 +174,7 @@ Slug: lowercase, hyphens, max 60 chars (e.g. `browse-js-no-await`). Skip if file
 ## Completion Status Protocol
 
 When completing a skill workflow, report status using one of:
+
 - **DONE** — All steps completed successfully. Evidence provided for each claim.
 - **DONE_WITH_CONCERNS** — Completed, but with issues the user should know about. List each concern.
 - **BLOCKED** — Cannot proceed. State what is blocking and what was tried.
@@ -176,11 +185,13 @@ When completing a skill workflow, report status using one of:
 It is always OK to stop and say "this is too hard for me" or "I'm not confident in this result."
 
 Bad work is worse than no work. You will not be penalized for escalating.
+
 - If you have attempted a task 3 times without success, STOP and escalate.
 - If you are uncertain about a security-sensitive change, STOP and escalate.
 - If the scope of work exceeds what you can verify, STOP and escalate.
 
 Escalation format:
+
 ```
 STATUS: BLOCKED | NEEDS_CONTEXT
 REASON: [1-2 sentences]
@@ -224,12 +235,12 @@ You are a senior product designer AND a frontend engineer. Review live sites wit
 
 **Parse the user's request for these parameters:**
 
-| Parameter | Default | Override example |
-|-----------|---------|-----------------:|
-| Target URL | (auto-detect or ask) | `https://myapp.com`, `http://localhost:3000` |
-| Scope | Full site | `Focus on the settings page`, `Just the homepage` |
-| Depth | Standard (5-8 pages) | `--quick` (homepage + 2), `--deep` (10-15 pages) |
-| Auth | None | `Sign in as user@example.com`, `Import cookies` |
+| Parameter  | Default              |                                  Override example |
+| ---------- | -------------------- | ------------------------------------------------: |
+| Target URL | (auto-detect or ask) |      `https://myapp.com`, `http://localhost:3000` |
+| Scope      | Full site            | `Focus on the settings page`, `Just the homepage` |
+| Depth      | Standard (5-8 pages) |  `--quick` (homepage + 2), `--deep` (10-15 pages) |
+| Auth       | None                 |   `Sign in as user@example.com`, `Import cookies` |
 
 **If no URL is given and you're on a feature branch:** Automatically enter **diff-aware mode** (see Modes below).
 
@@ -274,6 +285,7 @@ fi
 ```
 
 If `NEEDS_SETUP`:
+
 1. Tell the user: "gstack browse needs a one-time build (~10 seconds). OK to proceed?" Then STOP and wait.
 2. Run: `cd <SKILL_DIR> && ./setup`
 3. If `bun` is not installed: `curl -fsSL https://bun.sh/install | bash`
@@ -320,21 +332,22 @@ If user picks H → write `.gstack/no-test-bootstrap` and continue without tests
 ### B2. Research best practices
 
 Use WebSearch to find current best practices for the detected runtime:
+
 - `"[runtime] best test framework 2025 2026"`
 - `"[framework A] vs [framework B] comparison"`
 
 If WebSearch is unavailable, use this built-in knowledge table:
 
-| Runtime | Primary recommendation | Alternative |
-|---------|----------------------|-------------|
-| Ruby/Rails | minitest + fixtures + capybara | rspec + factory_bot + shoulda-matchers |
-| Node.js | vitest + @testing-library | jest + @testing-library |
-| Next.js | vitest + @testing-library/react + playwright | jest + cypress |
-| Python | pytest + pytest-cov | unittest |
-| Go | stdlib testing + testify | stdlib only |
-| Rust | cargo test (built-in) + mockall | — |
-| PHP | phpunit + mockery | pest |
-| Elixir | ExUnit (built-in) + ex_machina | — |
+| Runtime    | Primary recommendation                       | Alternative                            |
+| ---------- | -------------------------------------------- | -------------------------------------- |
+| Ruby/Rails | minitest + fixtures + capybara               | rspec + factory_bot + shoulda-matchers |
+| Node.js    | vitest + @testing-library                    | jest + @testing-library                |
+| Next.js    | vitest + @testing-library/react + playwright | jest + cypress                         |
+| Python     | pytest + pytest-cov                          | unittest                               |
+| Go         | stdlib testing + testify                     | stdlib only                            |
+| Rust       | cargo test (built-in) + mockall              | —                                      |
+| PHP        | phpunit + mockery                            | pest                                   |
+| Elixir     | ExUnit (built-in) + ex_machina               | —                                      |
 
 ### B3. Framework selection
 
@@ -389,6 +402,7 @@ ls .gitlab-ci.yml .circleci/ bitrise.yml 2>/dev/null
 
 If `.github/` exists (or no CI detected — default to GitHub Actions):
 Create `.github/workflows/test.yml` with:
+
 - `runs-on: ubuntu-latest`
 - Appropriate setup action for the runtime (setup-node, setup-ruby, setup-python, etc.)
 - The same test command verified in B5
@@ -401,6 +415,7 @@ If non-GitHub CI detected → skip CI generation with note: "Detected {provider}
 First check: If TESTING.md already exists → read it and update/append rather than overwriting. Never destroy existing content.
 
 Write TESTING.md with:
+
 - Philosophy: "100% test coverage is the key to great vibe coding. Tests let you move fast, trust your instincts, and ship with confidence — without them, vibe coding is just yolo coding. With tests, it's a superpower."
 - Framework name and version
 - How to run tests (the verified command from B5)
@@ -412,6 +427,7 @@ Write TESTING.md with:
 First check: If AGENTS.md already has a `## Testing` section → skip. Don't duplicate.
 
 Append a `## Testing` section:
+
 - Run command and test directory
 - Reference to TESTING.md
 - Test expectations:
@@ -447,22 +463,28 @@ mkdir -p "$REPORT_DIR/screenshots"
 ## Modes
 
 ### Full (default)
+
 Systematic review of all pages reachable from homepage. Visit 5-8 pages. Full checklist evaluation, responsive screenshots, interaction flow testing. Produces complete design audit report with letter grades.
 
 ### Quick (`--quick`)
+
 Homepage + 2 key pages only. First Impression + Design System Extraction + abbreviated checklist. Fastest path to a design score.
 
 ### Deep (`--deep`)
+
 Comprehensive review: 10-15 pages, every interaction flow, exhaustive checklist. For pre-launch audits or major redesigns.
 
 ### Diff-aware (automatic when on a feature branch with no URL)
+
 When on a feature branch, scope to pages affected by the branch changes:
+
 1. Analyze the branch diff: `git diff main...HEAD --name-only`
 2. Map changed files to affected pages/routes
 3. Detect running app on common local ports (3000, 4000, 8080)
 4. Audit only affected pages, compare design quality before/after
 
 ### Regression (`--regression` or previous `design-baseline.json` found)
+
 Run full audit, then load previous `design-baseline.json`. Compare: per-category grade deltas, new findings, resolved findings. Output regression table in report.
 
 ---
@@ -505,12 +527,13 @@ $B perf
 ```
 
 Structure findings as an **Inferred Design System**:
+
 - **Fonts:** list with usage counts. Flag if >3 distinct font families.
 - **Colors:** palette extracted. Flag if >12 unique non-gray colors. Note warm/cool/mixed.
 - **Heading Scale:** h1-h6 sizes. Flag skipped levels, non-systematic size jumps.
 - **Spacing Patterns:** sample padding/margin values. Flag non-scale values.
 
-After extraction, offer: *"Want me to save this as your DESIGN.md? I can lock in these observations as your project's design system baseline."*
+After extraction, offer: _"Want me to save this as your DESIGN.md? I can lock in these observations as your project's design system baseline."_
 
 ---
 
@@ -529,9 +552,11 @@ $B perf
 ### Auth Detection
 
 After the first navigation, check if the URL changed to a login-like path:
+
 ```bash
 $B url
 ```
+
 If URL contains `/login`, `/signin`, `/auth`, or `/sso`: the site requires authentication. AskUserQuestion: "This site requires authentication. Want to import cookies from your browser? Run `/setup-browser-cookies` first if needed."
 
 ### Design Audit Checklist (10 categories, ~80 items)
@@ -539,6 +564,7 @@ If URL contains `/login`, `/signin`, `/auth`, or `/sso`: the site requires authe
 Apply these at each page. Each finding gets an impact rating (high/medium/polish) and category.
 
 **1. Visual Hierarchy & Composition** (8 items)
+
 - Clear focal point? One primary CTA per view?
 - Eye flows naturally top-left to bottom-right?
 - Visual noise — competing elements fighting for attention?
@@ -549,6 +575,7 @@ Apply these at each page. Each finding gets an impact rating (high/medium/polish
 - White space is intentional, not leftover?
 
 **2. Typography** (15 items)
+
 - Font count <=3 (flag if more)
 - Scale follows ratio (1.25 major third or 1.333 perfect fourth)
 - Line-height: 1.5x body, 1.15-1.25x headings
@@ -566,6 +593,7 @@ Apply these at each page. Each finding gets an impact rating (high/medium/polish
 - No letterspacing on lowercase text
 
 **3. Color & Contrast** (10 items)
+
 - Palette coherent (<=12 unique non-gray colors)
 - WCAG AA: body text 4.5:1, large text (18px+) 3:1, UI components 3:1
 - Semantic colors consistent (success=green, error=red, warning=yellow/amber)
@@ -578,6 +606,7 @@ Apply these at each page. Each finding gets an impact rating (high/medium/polish
 - Neutral palette is warm or cool consistently — not mixed
 
 **4. Spacing & Layout** (12 items)
+
 - Grid consistent at all breakpoints
 - Spacing uses a scale (4px or 8px base), not arbitrary values
 - Alignment is consistent — nothing floats outside the grid
@@ -592,6 +621,7 @@ Apply these at each page. Each finding gets an impact rating (high/medium/polish
 - Breakpoints: mobile (375), tablet (768), desktop (1024), wide (1440)
 
 **5. Interaction States** (10 items)
+
 - Hover state on all interactive elements
 - `focus-visible` ring present (never `outline: none` without replacement)
 - Active/pressed state with depth effect or color shift
@@ -604,7 +634,8 @@ Apply these at each page. Each finding gets an impact rating (high/medium/polish
 - `cursor: pointer` on all clickable elements
 
 **6. Responsive Design** (8 items)
-- Mobile layout makes *design* sense (not just stacked desktop columns)
+
+- Mobile layout makes _design_ sense (not just stacked desktop columns)
 - Touch targets sufficient on mobile (>= 44px)
 - No horizontal scroll on any viewport
 - Images handle responsive (srcset, sizes, or CSS containment)
@@ -614,6 +645,7 @@ Apply these at each page. Each finding gets an impact rating (high/medium/polish
 - No `user-scalable=no` or `maximum-scale=1` in viewport meta
 
 **7. Motion & Animation** (6 items)
+
 - Easing: ease-out for entering, ease-in for exiting, ease-in-out for moving
 - Duration: 50-700ms range (nothing slower unless page transition)
 - Purpose: every animation communicates something (state change, attention, spatial relationship)
@@ -622,6 +654,7 @@ Apply these at each page. Each finding gets an impact rating (high/medium/polish
 - Only `transform` and `opacity` animated (not layout properties like width, height, top, left)
 
 **8. Content & Microcopy** (8 items)
+
 - Empty states designed with warmth (message + action + illustration/icon)
 - Error messages specific: what happened + why + what to do next
 - Button labels specific ("Save API Key" not "Continue" or "Submit")
@@ -647,6 +680,7 @@ The test: would a human designer at a respected studio ever ship this?
 - Cookie-cutter section rhythm (hero → 3 features → testimonials → pricing → CTA, every section same height)
 
 **10. Performance as Design** (6 items)
+
 - LCP < 2.0s (web apps), < 1.5s (informational sites)
 - CLS < 0.1 (no visible layout shifts during load)
 - Skeleton quality: shapes match real content, shimmer animation
@@ -658,7 +692,7 @@ The test: would a human designer at a respected studio ever ship this?
 
 ## Phase 4: Interaction Flow Review
 
-Walk 2-3 key user flows and evaluate the *feel*, not just the function:
+Walk 2-3 key user flows and evaluate the _feel_, not just the function:
 
 ```bash
 $B snapshot -i
@@ -667,6 +701,7 @@ $B snapshot -D          # diff to see what changed
 ```
 
 Evaluate:
+
 - **Response feel:** Does clicking feel responsive? Any delays or missing loading states?
 - **Transition quality:** Are transitions intentional or generic/absent?
 - **Feedback clarity:** Did the action clearly succeed or fail? Is the feedback immediate?
@@ -677,6 +712,7 @@ Evaluate:
 ## Phase 5: Cross-Page Consistency
 
 Compare screenshots and observations across pages for:
+
 - Navigation bar consistent across all pages?
 - Footer consistent?
 - Component reuse vs one-off designs (same button styled differently on different pages?)
@@ -692,12 +728,15 @@ Compare screenshots and observations across pages for:
 **Local:** `.gstack/design-reports/design-audit-{domain}-{YYYY-MM-DD}.md`
 
 **Project-scoped:**
+
 ```bash
 source <(~/.codex/skills/gstack/bin/gstack-slug 2>/dev/null) && mkdir -p ~/.gstack/projects/$SLUG
 ```
+
 Write to: `~/.gstack/projects/{slug}/{user}-{branch}-design-audit-{datetime}.md`
 
 **Baseline:** Write `design-baseline.json` for regression mode:
+
 ```json
 {
   "date": "YYYY-MM-DD",
@@ -712,10 +751,12 @@ Write to: `~/.gstack/projects/{slug}/{user}-{branch}-design-audit-{datetime}.md`
 ### Scoring System
 
 **Dual headline scores:**
+
 - **Design Score: {A-F}** — weighted average of all 10 categories
 - **AI Slop Score: {A-F}** — standalone grade with pithy verdict
 
 **Per-category grades:**
+
 - **A:** Intentional, polished, delightful. Shows design thinking.
 - **B:** Solid fundamentals, minor inconsistencies. Looks professional.
 - **C:** Functional but generic. No major problems, no design point of view.
@@ -743,6 +784,7 @@ AI Slop is 5% of Design Score but also graded independently as a headline metric
 ### Regression Output
 
 When previous `design-baseline.json` exists or `--regression` flag is used:
+
 - Load baseline grades
 - Compare: per-category deltas, new findings, resolved findings
 - Append regression table to report
@@ -752,6 +794,7 @@ When previous `design-baseline.json` exists or `--regression` flag is used:
 ## Design Critique Format
 
 Use structured feedback, not opinions:
+
 - "I notice..." — observation (e.g., "I notice the primary CTA competes with the secondary action")
 - "I wonder..." — question (e.g., "I wonder if users will understand what 'Process' means here")
 - "What if..." — suggestion (e.g., "What if we moved search to a more prominent position?")
@@ -770,7 +813,7 @@ Tie everything to user goals and product objectives. Always suggest specific imp
 5. **AI Slop detection is your superpower.** Most developers can't evaluate whether their site looks AI-generated. You can. Be direct about it.
 6. **Quick wins matter.** Always include a "Quick Wins" section — the 3-5 highest-impact fixes that take <30 minutes each.
 7. **Use `snapshot -C` for tricky UIs.** Finds clickable divs that the accessibility tree misses.
-8. **Responsive is design, not just "not broken."** A stacked desktop layout on mobile is not responsive design — it's lazy. Evaluate whether the mobile layout makes *design* sense.
+8. **Responsive is design, not just "not broken."** A stacked desktop layout on mobile is not responsive design — it's lazy. Evaluate whether the mobile layout makes _design_ sense.
 9. **Document incrementally.** Write each finding to the report as you find it. Don't batch.
 10. **Depth over breadth.** 5-10 well-documented findings with screenshots and specific suggestions > 20 vague observations.
 11. **Show screenshots to the user.** After every `$B screenshot`, `$B snapshot -a -o`, or `$B responsive` command, use the Read tool on the output file(s) so the user can see them inline. For `responsive` (3 files), Read all three. This is critical — without it, screenshots are invisible to the user.
@@ -910,18 +953,22 @@ Write the report to both local and project-scoped locations:
 **Local:** `.gstack/design-reports/design-audit-{domain}-{YYYY-MM-DD}.md`
 
 **Project-scoped:**
+
 ```bash
 source <(~/.codex/skills/gstack/bin/gstack-slug 2>/dev/null) && mkdir -p ~/.gstack/projects/$SLUG
 ```
+
 Write to `~/.gstack/projects/{slug}/{user}-{branch}-design-audit-{datetime}.md`
 
 **Per-finding additions** (beyond standard design audit report):
+
 - Fix Status: verified / best-effort / reverted / deferred
 - Commit SHA (if fixed)
 - Files Changed (if fixed)
 - Before/After screenshots (if fixed)
 
 **Summary section:**
+
 - Total findings
 - Fixes applied (verified: X, best-effort: Y, reverted: Z)
 - Deferred findings
@@ -929,6 +976,7 @@ Write to `~/.gstack/projects/{slug}/{user}-{branch}-design-audit-{datetime}.md`
 - AI slop score delta: baseline → final
 
 **PR Summary:** Include a one-line summary suitable for PR descriptions:
+
 > "Design review found N issues, fixed M. Design score X → Y, AI slop score X → Y."
 
 ---

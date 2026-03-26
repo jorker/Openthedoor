@@ -521,6 +521,7 @@ Shipped in v0.6.5. TemplateContext in gen-skill-docs.ts bakes skill name into pr
 **Context:** All items are prose additions to `investigate/SKILL.md.tmpl`. No new scripts.
 
 **Items:**
+
 1. Stack trace auto-detection for freeze directory (parse deepest app frame)
 2. Freeze boundary widening (ask to widen instead of hard-block when hitting boundary)
 3. Post-fix auto-unfreeze + full test suite run
@@ -535,38 +536,44 @@ Shipped in v0.6.5. TemplateContext in gen-skill-docs.ts bakes skill name into pr
 ## Completed
 
 ### Phase 1: Foundations (v0.2.0)
+
 - Rename to gstack
 - Restructure to monorepo layout
 - Setup script for skill symlinks
 - Snapshot command with ref-based element selection
 - Snapshot tests
-**Completed:** v0.2.0
+  **Completed:** v0.2.0
 
 ### Phase 2: Enhanced Browser (v0.2.0)
+
 - Annotated screenshots, snapshot diffing, dialog handling, file upload
 - Cursor-interactive elements, element state checks
 - CircularBuffer, async buffer flush, health check
 - Playwright error wrapping, useragent fix
 - 148 integration tests
-**Completed:** v0.2.0
+  **Completed:** v0.2.0
 
 ### Phase 3: QA Testing Agent (v0.3.0)
+
 - /qa SKILL.md with 6-phase workflow, 3 modes (full/quick/regression)
 - Issue taxonomy, severity classification, exploration checklist
 - Report template, health score rubric, framework detection
 - wait/console/cookie-import commands, find-browse binary
-**Completed:** v0.3.0
+  **Completed:** v0.3.0
 
 ### Phase 3.5: Browser Cookie Import (v0.3.x)
+
 - cookie-import-browser command (Chromium cookie DB decryption)
 - Cookie picker web UI, /setup-browser-cookies skill
 - 18 unit tests, browser registry (Comet, Chrome, Arc, Brave, Edge)
-**Completed:** v0.3.1
+  **Completed:** v0.3.1
 
 ### E2E test cost tracking
+
 - Track cumulative API spend, warn if over threshold
-**Completed:** v0.3.6
+  **Completed:** v0.3.6
 
 ### Auto-upgrade mode + smart update check
+
 - Config CLI (`bin/gstack-config`), auto-upgrade via `~/.gstack/config.yaml`, 12h cache TTL, exponential snooze backoff (24h→48h→1wk), "never ask again" option, vendored copy sync on upgrade
-**Completed:** v0.3.8
+  **Completed:** v0.3.8

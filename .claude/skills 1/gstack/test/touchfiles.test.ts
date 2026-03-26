@@ -3,18 +3,19 @@
  * Free (no API calls), runs with `bun test`.
  */
 
-import { describe, test, expect } from 'bun:test';
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
-import * as path from 'path';
 import * as os from 'os';
+import * as path from 'path';
+import { describe, expect, test } from 'bun:test';
+
 import {
-  matchGlob,
-  selectTests,
   detectBaseBranch,
   E2E_TOUCHFILES,
-  LLM_JUDGE_TOUCHFILES,
   GLOBAL_TOUCHFILES,
+  LLM_JUDGE_TOUCHFILES,
+  matchGlob,
+  selectTests,
 } from './helpers/touchfiles';
 
 const ROOT = path.resolve(import.meta.dir, '..');
@@ -24,7 +25,9 @@ const ROOT = path.resolve(import.meta.dir, '..');
 describe('matchGlob', () => {
   test('** matches any depth of path segments', () => {
     expect(matchGlob('browse/src/commands.ts', 'browse/src/**')).toBe(true);
-    expect(matchGlob('browse/src/deep/nested/file.ts', 'browse/src/**')).toBe(true);
+    expect(matchGlob('browse/src/deep/nested/file.ts', 'browse/src/**')).toBe(
+      true
+    );
     expect(matchGlob('browse/src/cli.ts', 'browse/src/**')).toBe(true);
   });
 
@@ -40,9 +43,24 @@ describe('matchGlob', () => {
   });
 
   test('* matches within a single segment', () => {
-    expect(matchGlob('test/fixtures/review-eval-enum.rb', 'test/fixtures/review-eval-enum*.rb')).toBe(true);
-    expect(matchGlob('test/fixtures/review-eval-enum-diff.rb', 'test/fixtures/review-eval-enum*.rb')).toBe(true);
-    expect(matchGlob('test/fixtures/review-eval-vuln.rb', 'test/fixtures/review-eval-enum*.rb')).toBe(false);
+    expect(
+      matchGlob(
+        'test/fixtures/review-eval-enum.rb',
+        'test/fixtures/review-eval-enum*.rb'
+      )
+    ).toBe(true);
+    expect(
+      matchGlob(
+        'test/fixtures/review-eval-enum-diff.rb',
+        'test/fixtures/review-eval-enum*.rb'
+      )
+    ).toBe(true);
+    expect(
+      matchGlob(
+        'test/fixtures/review-eval-vuln.rb',
+        'test/fixtures/review-eval-enum*.rb'
+      )
+    ).toBe(false);
   });
 
   test('dots in patterns are escaped correctly', () => {
@@ -83,7 +101,10 @@ describe('selectTests', () => {
   });
 
   test('global touchfile triggers ALL tests', () => {
-    const result = selectTests(['test/helpers/session-runner.ts'], E2E_TOUCHFILES);
+    const result = selectTests(
+      ['test/helpers/session-runner.ts'],
+      E2E_TOUCHFILES
+    );
     expect(result.selected.length).toBe(Object.keys(E2E_TOUCHFILES).length);
     expect(result.skipped.length).toBe(0);
     expect(result.reason).toContain('global');
@@ -109,7 +130,7 @@ describe('selectTests', () => {
   test('multiple changed files union their selections', () => {
     const result = selectTests(
       ['plan-ceo-review/SKILL.md', 'retro/SKILL.md.tmpl'],
-      E2E_TOUCHFILES,
+      E2E_TOUCHFILES
     );
     expect(result.selected).toContain('plan-ceo-review');
     expect(result.selected).toContain('plan-ceo-review-selective');
@@ -141,8 +162,13 @@ describe('selectTests', () => {
   });
 
   test('global touchfiles work for LLM-judge tests too', () => {
-    const result = selectTests(['scripts/gen-skill-docs.ts'], LLM_JUDGE_TOUCHFILES);
-    expect(result.selected.length).toBe(Object.keys(LLM_JUDGE_TOUCHFILES).length);
+    const result = selectTests(
+      ['scripts/gen-skill-docs.ts'],
+      LLM_JUDGE_TOUCHFILES
+    );
+    expect(result.selected.length).toBe(
+      Object.keys(LLM_JUDGE_TOUCHFILES).length
+    );
   });
 });
 
@@ -165,7 +191,9 @@ describe('detectBaseBranch', () => {
     // Should find 'main' (or 'master' depending on git default)
     expect(result).toMatch(/^(main|master)$/);
 
-    try { fs.rmSync(dir, { recursive: true, force: true }); } catch {}
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+    } catch {}
   });
 
   test('returns null for empty repo with no branches', () => {
@@ -178,7 +206,9 @@ describe('detectBaseBranch', () => {
     const result = detectBaseBranch(dir);
     expect(result).toBeNull();
 
-    try { fs.rmSync(dir, { recursive: true, force: true }); } catch {}
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+    } catch {}
   });
 
   test('returns null for non-git directory', () => {
@@ -186,7 +216,9 @@ describe('detectBaseBranch', () => {
     const result = detectBaseBranch(dir);
     expect(result).toBeNull();
 
-    try { fs.rmSync(dir, { recursive: true, force: true }); } catch {}
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+    } catch {}
   });
 });
 
@@ -196,7 +228,7 @@ describe('TOUCHFILES completeness', () => {
   test('every E2E testName has a TOUCHFILES entry', () => {
     const e2eContent = fs.readFileSync(
       path.join(ROOT, 'test', 'skill-e2e.test.ts'),
-      'utf-8',
+      'utf-8'
     );
 
     // Extract all testName: 'value' entries
@@ -212,18 +244,19 @@ describe('TOUCHFILES completeness', () => {
     }
 
     // Add the template-expanded testNames from runPlantedBugEval calls
-    const plantedBugRegex = /runPlantedBugEval\([^,]+,\s*[^,]+,\s*['"`]([^'"`]+)['"`]\)/g;
+    const plantedBugRegex =
+      /runPlantedBugEval\([^,]+,\s*[^,]+,\s*['"`]([^'"`]+)['"`]\)/g;
     while ((match = plantedBugRegex.exec(e2eContent)) !== null) {
       testNames.push(`qa-${match[1]}`);
     }
 
     expect(testNames.length).toBeGreaterThan(0);
 
-    const missing = testNames.filter(name => !(name in E2E_TOUCHFILES));
+    const missing = testNames.filter((name) => !(name in E2E_TOUCHFILES));
     if (missing.length > 0) {
       throw new Error(
         `E2E tests missing TOUCHFILES entries: ${missing.join(', ')}\n` +
-        `Add these to E2E_TOUCHFILES in test/helpers/touchfiles.ts`,
+          `Add these to E2E_TOUCHFILES in test/helpers/touchfiles.ts`
       );
     }
   });
@@ -231,7 +264,7 @@ describe('TOUCHFILES completeness', () => {
   test('every LLM-judge test has a TOUCHFILES entry', () => {
     const llmContent = fs.readFileSync(
       path.join(ROOT, 'test', 'skill-llm-eval.test.ts'),
-      'utf-8',
+      'utf-8'
     );
 
     // Extract test names from addTest({ name: '...' }) calls
@@ -246,11 +279,11 @@ describe('TOUCHFILES completeness', () => {
     const unique = [...new Set(testNames)];
     expect(unique.length).toBeGreaterThan(0);
 
-    const missing = unique.filter(name => !(name in LLM_JUDGE_TOUCHFILES));
+    const missing = unique.filter((name) => !(name in LLM_JUDGE_TOUCHFILES));
     if (missing.length > 0) {
       throw new Error(
         `LLM-judge tests missing TOUCHFILES entries: ${missing.join(', ')}\n` +
-        `Add these to LLM_JUDGE_TOUCHFILES in test/helpers/touchfiles.ts`,
+          `Add these to LLM_JUDGE_TOUCHFILES in test/helpers/touchfiles.ts`
       );
     }
   });

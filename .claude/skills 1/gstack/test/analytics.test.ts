@@ -1,10 +1,15 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { parseJSONL, filterByPeriod, formatReport } from '../scripts/analytics';
-import type { AnalyticsEvent } from '../scripts/analytics';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
 import { execSync } from 'child_process';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
+
+import {
+  filterByPeriod,
+  formatReport,
+  parseJSONL,
+  type AnalyticsEvent,
+} from '../scripts/analytics';
 
 const TMP_DIR = path.join(os.tmpdir(), 'analytics-test');
 const SCRIPT = path.resolve(import.meta.dir, '../scripts/analytics.ts');
@@ -93,7 +98,8 @@ describe('parseJSONL', () => {
 
 describe('filterByPeriod', () => {
   const now = new Date();
-  const daysAgo = (n: number) => new Date(now.getTime() - n * 24 * 60 * 60 * 1000).toISOString();
+  const daysAgo = (n: number) =>
+    new Date(now.getTime() - n * 24 * 60 * 60 * 1000).toISOString();
 
   const events: AnalyticsEvent[] = [
     { skill: 'ship', ts: daysAgo(1), repo: 'app' },
@@ -167,9 +173,27 @@ describe('formatReport', () => {
   test('counts hook fire events separately', () => {
     const events: AnalyticsEvent[] = [
       { skill: 'ship', ts: '2026-03-18T15:30:00Z', repo: 'app' },
-      { skill: 'careful', ts: '2026-03-18T16:00:00Z', repo: 'app', event: 'hook_fire', pattern: 'rm_recursive' },
-      { skill: 'careful', ts: '2026-03-18T16:30:00Z', repo: 'app', event: 'hook_fire', pattern: 'rm_recursive' },
-      { skill: 'careful', ts: '2026-03-18T17:00:00Z', repo: 'app', event: 'hook_fire', pattern: 'git_force_push' },
+      {
+        skill: 'careful',
+        ts: '2026-03-18T16:00:00Z',
+        repo: 'app',
+        event: 'hook_fire',
+        pattern: 'rm_recursive',
+      },
+      {
+        skill: 'careful',
+        ts: '2026-03-18T16:30:00Z',
+        repo: 'app',
+        event: 'hook_fire',
+        pattern: 'rm_recursive',
+      },
+      {
+        skill: 'careful',
+        ts: '2026-03-18T17:00:00Z',
+        repo: 'app',
+        event: 'hook_fire',
+        pattern: 'git_force_push',
+      },
     ];
     const report = formatReport(events);
     expect(report).toContain('Safety Hook Events');
@@ -185,7 +209,13 @@ describe('formatReport', () => {
       { skill: 'ship', ts: '2026-03-18T15:30:00Z', repo: 'my-app' },
       { skill: 'ship', ts: '2026-03-18T15:35:00Z', repo: 'my-app' },
       { skill: 'qa', ts: '2026-03-18T16:00:00Z', repo: 'my-api' },
-      { skill: 'careful', ts: '2026-03-18T16:30:00Z', repo: 'my-app', event: 'hook_fire', pattern: 'rm_recursive' },
+      {
+        skill: 'careful',
+        ts: '2026-03-18T16:30:00Z',
+        repo: 'my-app',
+        event: 'hook_fire',
+        pattern: 'rm_recursive',
+      },
     ];
     const report = formatReport(events);
     // Skills counted correctly (hook_fire events excluded from skill counts)
@@ -217,11 +247,7 @@ describe('integration via runScript helper', () => {
   });
 
   test('all malformed lines → "No analytics data found."', () => {
-    const p = writeTempJSONL('bad.jsonl', [
-      'not json',
-      '{broken',
-      '42',
-    ]);
+    const p = writeTempJSONL('bad.jsonl', ['not json', '{broken', '42']);
     const output = runScript(p);
     expect(output).toBe('No analytics data found.');
   });
@@ -244,8 +270,12 @@ describe('integration via runScript helper', () => {
 
   test('period filtering (7d) only includes recent entries', () => {
     const now = new Date();
-    const recent = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString();
-    const old = new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000).toISOString();
+    const recent = new Date(
+      now.getTime() - 2 * 24 * 60 * 60 * 1000
+    ).toISOString();
+    const old = new Date(
+      now.getTime() - 20 * 24 * 60 * 60 * 1000
+    ).toISOString();
 
     const p = writeTempJSONL('period.jsonl', [
       `{"skill":"ship","ts":"${recent}","repo":"app"}`,

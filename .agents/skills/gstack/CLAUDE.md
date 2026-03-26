@@ -110,6 +110,7 @@ SKILL.md.tmpl files are **prompt templates read by Claude**, not bash scripts.
 Each bash code block runs in a separate shell — variables do not persist between blocks.
 
 Rules:
+
 - **Use natural language for logic and state.** Don't use shell variables to pass
   state between code blocks. Instead, tell Claude what to remember and reference
   it in prose (e.g., "the base branch detected in Step 0").
@@ -137,6 +138,7 @@ could break other Claude Code sessions using gstack concurrently.
 
 **Check once per session:** Run `ls -la .claude/skills/gstack` to see if it's a
 symlink or a real copy. If it's a symlink to your working directory, be aware that:
+
 - Template changes + `bun run gen:skill-docs` immediately affect all gstack invocations
 - Breaking changes to SKILL.md.tmpl files can break concurrent gstack sessions
 - During large refactors, remove the symlink (`rm .claude/skills/gstack`) so the
@@ -154,6 +156,7 @@ into separate commits before pushing. Each commit should be independently
 understandable and revertable.
 
 Examples of good bisection:
+
 - Rename/move separate from behavior changes
 - Test infrastructure (touchfiles, helpers) separate from test implementations
 - Template changes separate from generated file regeneration
@@ -179,14 +182,14 @@ CHANGELOG.md is **for users**, not contributors. Write it like product release n
 
 When estimating or discussing effort, always show both human-team and CC+gstack time:
 
-| Task type | Human team | CC+gstack | Compression |
-|-----------|-----------|-----------|-------------|
-| Boilerplate / scaffolding | 2 days | 15 min | ~100x |
-| Test writing | 1 day | 15 min | ~50x |
-| Feature implementation | 1 week | 30 min | ~30x |
-| Bug fix + regression test | 4 hours | 15 min | ~20x |
-| Architecture / design | 2 days | 4 hours | ~5x |
-| Research / exploration | 1 day | 3 hours | ~3x |
+| Task type                 | Human team | CC+gstack | Compression |
+| ------------------------- | ---------- | --------- | ----------- |
+| Boilerplate / scaffolding | 2 days     | 15 min    | ~100x       |
+| Test writing              | 1 day      | 15 min    | ~50x        |
+| Feature implementation    | 1 week     | 30 min    | ~30x        |
+| Bug fix + regression test | 4 hours    | 15 min    | ~20x        |
+| Architecture / design     | 2 days     | 4 hours   | ~5x         |
+| Research / exploration    | 1 day      | 3 hours   | ~3x         |
 
 Completeness is cheap. Don't recommend shortcuts when the complete implementation
 is a "lake" (achievable) not an "ocean" (multi-quarter migration). See the
@@ -206,6 +209,7 @@ a preamble text change affects agent behavior, a new helper changes timing, a
 regenerated SKILL.md shifts prompt context.
 
 **Required before attributing a failure to "pre-existing":**
+
 1. Run the same eval on main (or base branch) and show it fails there too
 2. If it passes on main but fails on the branch — it IS your change. Trace the blame.
 3. If you can't run on main, say "unverified — may or may not be related" and flag it

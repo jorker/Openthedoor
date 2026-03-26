@@ -6,14 +6,18 @@
  * and non-fatal I/O guarantees.
  */
 
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import * as fs from 'fs';
-import * as path from 'path';
 import * as os from 'os';
-import { sanitizeTestName } from './session-runner';
+import * as path from 'path';
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
+
+import {
+  renderDashboard,
+  type HeartbeatData,
+  type PartialData,
+} from '../../scripts/eval-watch';
 import { EvalCollector } from './eval-store';
-import { renderDashboard } from '../../scripts/eval-watch';
-import type { HeartbeatData, PartialData } from '../../scripts/eval-watch';
+import { sanitizeTestName } from './session-runner';
 
 let tmpDir: string;
 
@@ -22,7 +26,9 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+  try {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  } catch {}
 });
 
 // --- Test 1: runDir created when runId set ---
@@ -40,7 +46,8 @@ describe('session-runner observability', () => {
     const expected = path.join(os.homedir(), '.gstack-dev', 'e2e-live.json');
     // Import the module and check HEARTBEAT_PATH exists in the file
     const sessionRunnerSrc = fs.readFileSync(
-      path.resolve(__dirname, 'session-runner.ts'), 'utf-8'
+      path.resolve(__dirname, 'session-runner.ts'),
+      'utf-8'
     );
     expect(sessionRunnerSrc).toContain("'e2e-live.json'");
     expect(sessionRunnerSrc).toContain('atomicWriteSync');
@@ -49,9 +56,20 @@ describe('session-runner observability', () => {
   test('3: heartbeat JSON schema has expected fields', () => {
     // Verify the heartbeat write code includes all required fields
     const src = fs.readFileSync(
-      path.resolve(__dirname, 'session-runner.ts'), 'utf-8'
+      path.resolve(__dirname, 'session-runner.ts'),
+      'utf-8'
     );
-    for (const field of ['runId', 'startedAt', 'currentTest', 'status', 'turn', 'toolCount', 'lastTool', 'lastToolAt', 'elapsedSec']) {
+    for (const field of [
+      'runId',
+      'startedAt',
+      'currentTest',
+      'status',
+      'turn',
+      'toolCount',
+      'lastTool',
+      'lastToolAt',
+      'elapsedSec',
+    ]) {
       expect(src).toContain(field);
     }
     // Should NOT contain completedTests (removed per plan)
@@ -61,7 +79,8 @@ describe('session-runner observability', () => {
   test('4: progress.log format matches expected pattern', () => {
     // The progress line format is: "  [Ns] turn T tool #C: Name(...)"
     const src = fs.readFileSync(
-      path.resolve(__dirname, 'session-runner.ts'), 'utf-8'
+      path.resolve(__dirname, 'session-runner.ts'),
+      'utf-8'
     );
     // Both stderr and progress.log use the same progressLine variable
     expect(src).toContain('progressLine');
@@ -71,7 +90,8 @@ describe('session-runner observability', () => {
 
   test('5: NDJSON file uses sanitized test name', () => {
     const src = fs.readFileSync(
-      path.resolve(__dirname, 'session-runner.ts'), 'utf-8'
+      path.resolve(__dirname, 'session-runner.ts'),
+      'utf-8'
     );
     expect(src).toContain('safeName');
     expect(src).toContain('.ndjson');
@@ -79,7 +99,8 @@ describe('session-runner observability', () => {
 
   test('8: failure transcript goes to runDir when available', () => {
     const src = fs.readFileSync(
-      path.resolve(__dirname, 'session-runner.ts'), 'utf-8'
+      path.resolve(__dirname, 'session-runner.ts'),
+      'utf-8'
     );
     // Should use runDir as primary, workingDirectory as fallback
     expect(src).toContain('runDir || path.join(workingDirectory');
@@ -88,7 +109,8 @@ describe('session-runner observability', () => {
 
   test('11: all new I/O is wrapped in try/catch (non-fatal)', () => {
     const src = fs.readFileSync(
-      path.resolve(__dirname, 'session-runner.ts'), 'utf-8'
+      path.resolve(__dirname, 'session-runner.ts'),
+      'utf-8'
     );
     // Count non-fatal comments — should be present for each new I/O path
     const nonFatalCount = (src.match(/\/\* non-fatal \*\//g) || []).length;
@@ -133,13 +155,23 @@ describe('eval-store observability', () => {
     const collector = new EvalCollector('e2e', evalDir);
 
     collector.addTest({
-      name: 'test-one', suite: 'test', tier: 'e2e',
-      passed: true, duration_ms: 1000, cost_usd: 0.05,
+      name: 'test-one',
+      suite: 'test',
+      tier: 'e2e',
+      passed: true,
+      duration_ms: 1000,
+      cost_usd: 0.05,
     });
     collector.addTest({
-      name: 'test-two', suite: 'test', tier: 'e2e',
-      passed: false, duration_ms: 2000, cost_usd: 0.10,
-      exit_reason: 'timeout', timeout_at_turn: 5, last_tool_call: 'Bash(ls)',
+      name: 'test-two',
+      suite: 'test',
+      tier: 'e2e',
+      passed: false,
+      duration_ms: 2000,
+      cost_usd: 0.1,
+      exit_reason: 'timeout',
+      timeout_at_turn: 5,
+      last_tool_call: 'Bash(ls)',
     });
 
     const partialPath = path.join(evalDir, '_partial-e2e.json');
@@ -158,8 +190,12 @@ describe('eval-store observability', () => {
     const collector = new EvalCollector('e2e', evalDir);
 
     collector.addTest({
-      name: 'test-one', suite: 'test', tier: 'e2e',
-      passed: true, duration_ms: 1000, cost_usd: 0.05,
+      name: 'test-one',
+      suite: 'test',
+      tier: 'e2e',
+      passed: true,
+      duration_ms: 1000,
+      cost_usd: 0.05,
     });
 
     const partialPath = path.join(evalDir, '_partial-e2e.json');
@@ -171,7 +207,9 @@ describe('eval-store observability', () => {
     expect(fs.existsSync(partialPath)).toBe(true);
 
     // Final eval file should also exist
-    const files = fs.readdirSync(evalDir).filter(f => f.endsWith('.json') && !f.startsWith('_'));
+    const files = fs
+      .readdirSync(evalDir)
+      .filter((f) => f.endsWith('.json') && !f.startsWith('_'));
     expect(files.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -180,8 +218,12 @@ describe('eval-store observability', () => {
     const collector = new EvalCollector('e2e', evalDir);
 
     collector.addTest({
-      name: 'diagnostic-test', suite: 'test', tier: 'e2e',
-      passed: false, duration_ms: 5000, cost_usd: 0.20,
+      name: 'diagnostic-test',
+      suite: 'test',
+      tier: 'e2e',
+      passed: false,
+      duration_ms: 5000,
+      cost_usd: 0.2,
       exit_reason: 'error_max_turns',
       timeout_at_turn: undefined,
       last_tool_call: 'Write(review-output.md)',
@@ -213,8 +255,20 @@ describe('eval-watch dashboard', () => {
 
     const partial: PartialData = {
       tests: [
-        { name: 'browse basic', passed: true, cost_usd: 0.07, duration_ms: 24000, turns_used: 6 },
-        { name: '/review', passed: true, cost_usd: 0.17, duration_ms: 63000, turns_used: 13 },
+        {
+          name: 'browse basic',
+          passed: true,
+          cost_usd: 0.07,
+          duration_ms: 24000,
+          turns_used: 6,
+        },
+        {
+          name: '/review',
+          passed: true,
+          cost_usd: 0.17,
+          duration_ms: 63000,
+          turns_used: 13,
+        },
       ],
       total_cost_usd: 0.24,
       _partial: true,
@@ -270,7 +324,12 @@ describe('eval-watch dashboard', () => {
   test('renderDashboard handles partial-only (heartbeat gone)', () => {
     const partial: PartialData = {
       tests: [
-        { name: 'browse basic', passed: true, cost_usd: 0.07, duration_ms: 24000 },
+        {
+          name: 'browse basic',
+          passed: true,
+          cost_usd: 0.07,
+          duration_ms: 24000,
+        },
       ],
       total_cost_usd: 0.07,
       _partial: true,

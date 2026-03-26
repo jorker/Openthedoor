@@ -8,10 +8,10 @@
  * Comparison functions are exported for reuse by the eval:compare CLI.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
 import { spawnSync } from 'child_process';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 
 const SCHEMA_VERSION = 1;
 const DEFAULT_EVAL_DIR = path.join(os.homedir(), '.gstack-dev', 'evals');
@@ -38,9 +38,9 @@ export interface EvalTestEntry {
   judge_reasoning?: string;
 
   // Machine-readable diagnostics
-  exit_reason?: string;       // 'success' | 'timeout' | 'error_max_turns' | 'exit_code_N'
-  timeout_at_turn?: number;   // which turn was active when timeout hit
-  last_tool_call?: string;    // e.g. "Write(review-output.md)"
+  exit_reason?: string; // 'success' | 'timeout' | 'error_max_turns' | 'exit_code_N'
+  timeout_at_turn?: number; // which turn was active when timeout hit
+  last_tool_call?: string; // e.g. "Write(review-output.md)"
 
   // Outcome eval
   detection_rate?: number;
@@ -66,15 +66,27 @@ export interface EvalResult {
   total_cost_usd: number;
   total_duration_ms: number;
   tests: EvalTestEntry[];
-  _partial?: boolean;  // true for incremental saves, absent in final
+  _partial?: boolean; // true for incremental saves, absent in final
 }
 
 export interface TestDelta {
   name: string;
-  before: { passed: boolean; cost_usd: number; turns_used?: number; duration_ms?: number;
-            detection_rate?: number; tool_summary?: Record<string, number> };
-  after:  { passed: boolean; cost_usd: number; turns_used?: number; duration_ms?: number;
-            detection_rate?: number; tool_summary?: Record<string, number> };
+  before: {
+    passed: boolean;
+    cost_usd: number;
+    turns_used?: number;
+    duration_ms?: number;
+    detection_rate?: number;
+    tool_summary?: Record<string, number>;
+  };
+  after: {
+    passed: boolean;
+    cost_usd: number;
+    turns_used?: number;
+    duration_ms?: number;
+    detection_rate?: number;
+    tool_summary?: Record<string, number>;
+  };
   status_change: 'improved' | 'regressed' | 'unchanged';
 }
 
@@ -102,12 +114,18 @@ export interface ComparisonResult {
  * Centralizes the pass/fail logic so all planted-bug tests use the same criteria.
  */
 export function judgePassed(
-  judgeResult: { detection_rate: number; false_positives: number; evidence_quality: number },
-  groundTruth: { minimum_detection: number; max_false_positives: number },
+  judgeResult: {
+    detection_rate: number;
+    false_positives: number;
+    evidence_quality: number;
+  },
+  groundTruth: { minimum_detection: number; max_false_positives: number }
 ): boolean {
-  return judgeResult.detection_rate >= groundTruth.minimum_detection
-    && judgeResult.false_positives <= groundTruth.max_false_positives
-    && judgeResult.evidence_quality >= 2;
+  return (
+    judgeResult.detection_rate >= groundTruth.minimum_detection &&
+    judgeResult.false_positives <= groundTruth.max_false_positives &&
+    judgeResult.evidence_quality >= 2
+  );
 }
 
 // --- Comparison functions (exported for eval:compare CLI) ---
@@ -140,17 +158,18 @@ export function findPreviousRun(
   evalDir: string,
   tier: string,
   branch: string,
-  excludeFile: string,
+  excludeFile: string
 ): string | null {
   let files: string[];
   try {
-    files = fs.readdirSync(evalDir).filter(f => f.endsWith('.json'));
+    files = fs.readdirSync(evalDir).filter((f) => f.endsWith('.json'));
   } catch {
     return null; // dir doesn't exist
   }
 
   // Parse top-level fields from each file (cheap — no full tests array needed)
-  const entries: Array<{ file: string; branch: string; timestamp: string }> = [];
+  const entries: Array<{ file: string; branch: string; timestamp: string }> =
+    [];
   for (const file of files) {
     if (file === path.basename(excludeFile)) continue;
     const fullPath = path.join(evalDir, file);
@@ -159,8 +178,14 @@ export function findPreviousRun(
       // Quick parse — only grab the fields we need
       const data = JSON.parse(raw);
       if (data.tier !== tier) continue;
-      entries.push({ file: fullPath, branch: data.branch || '', timestamp: data.timestamp || '' });
-    } catch { continue; }
+      entries.push({
+        file: fullPath,
+        branch: data.branch || '',
+        timestamp: data.timestamp || '',
+      });
+    } catch {
+      continue;
+    }
   }
 
   if (entries.length === 0) return null;
@@ -169,7 +194,7 @@ export function findPreviousRun(
   entries.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
 
   // Prefer same branch
-  const sameBranch = entries.find(e => e.branch === branch);
+  const sameBranch = entries.find((e) => e.branch === branch);
   if (sameBranch) return sameBranch.file;
 
   // Fallback: any branch
@@ -183,11 +208,14 @@ export function compareEvalResults(
   before: EvalResult,
   after: EvalResult,
   beforeFile: string,
-  afterFile: string,
+  afterFile: string
 ): ComparisonResult {
   const deltas: TestDelta[] = [];
-  let improved = 0, regressed = 0, unchanged = 0;
-  let toolCountBefore = 0, toolCountAfter = 0;
+  let improved = 0,
+    regressed = 0,
+    unchanged = 0;
+  let toolCountBefore = 0,
+    toolCountAfter = 0;
 
   // Index before tests by name
   const beforeMap = new Map<string, EvalTestEntry>();
@@ -198,19 +226,35 @@ export function compareEvalResults(
   // Walk after tests, match by name
   for (const afterTest of after.tests) {
     const beforeTest = beforeMap.get(afterTest.name);
-    const beforeToolSummary = beforeTest?.transcript ? extractToolSummary(beforeTest.transcript) : {};
-    const afterToolSummary = afterTest.transcript ? extractToolSummary(afterTest.transcript) : {};
+    const beforeToolSummary = beforeTest?.transcript
+      ? extractToolSummary(beforeTest.transcript)
+      : {};
+    const afterToolSummary = afterTest.transcript
+      ? extractToolSummary(afterTest.transcript)
+      : {};
 
-    const beforeToolCount = Object.values(beforeToolSummary).reduce((a, b) => a + b, 0);
-    const afterToolCount = Object.values(afterToolSummary).reduce((a, b) => a + b, 0);
+    const beforeToolCount = Object.values(beforeToolSummary).reduce(
+      (a, b) => a + b,
+      0
+    );
+    const afterToolCount = Object.values(afterToolSummary).reduce(
+      (a, b) => a + b,
+      0
+    );
     toolCountBefore += beforeToolCount;
     toolCountAfter += afterToolCount;
 
     let statusChange: TestDelta['status_change'] = 'unchanged';
     if (beforeTest) {
-      if (!beforeTest.passed && afterTest.passed) { statusChange = 'improved'; improved++; }
-      else if (beforeTest.passed && !afterTest.passed) { statusChange = 'regressed'; regressed++; }
-      else { unchanged++; }
+      if (!beforeTest.passed && afterTest.passed) {
+        statusChange = 'improved';
+        improved++;
+      } else if (beforeTest.passed && !afterTest.passed) {
+        statusChange = 'regressed';
+        regressed++;
+      } else {
+        unchanged++;
+      }
     } else {
       // New test — treat as unchanged (no prior data)
       unchanged++;
@@ -242,8 +286,13 @@ export function compareEvalResults(
 
   // Tests that were in before but not in after (removed tests)
   for (const [name, beforeTest] of beforeMap) {
-    const beforeToolSummary = beforeTest.transcript ? extractToolSummary(beforeTest.transcript) : {};
-    const beforeToolCount = Object.values(beforeToolSummary).reduce((a, b) => a + b, 0);
+    const beforeToolSummary = beforeTest.transcript
+      ? extractToolSummary(beforeTest.transcript)
+      : {};
+    const beforeToolCount = Object.values(beforeToolSummary).reduce(
+      (a, b) => a + b,
+      0
+    );
     toolCountBefore += beforeToolCount;
     unchanged++;
     deltas.push({
@@ -284,13 +333,22 @@ export function compareEvalResults(
  */
 export function formatComparison(c: ComparisonResult): string {
   const lines: string[] = [];
-  const ts = c.before_timestamp ? c.before_timestamp.replace('T', ' ').slice(0, 16) : 'unknown';
-  lines.push(`\nvs previous: ${c.before_branch}/${c.deltas.length ? 'eval' : ''} (${ts})`);
+  const ts = c.before_timestamp
+    ? c.before_timestamp.replace('T', ' ').slice(0, 16)
+    : 'unknown';
+  lines.push(
+    `\nvs previous: ${c.before_branch}/${c.deltas.length ? 'eval' : ''} (${ts})`
+  );
   lines.push('─'.repeat(70));
 
   // Per-test deltas
   for (const d of c.deltas) {
-    const arrow = d.status_change === 'improved' ? '↑' : d.status_change === 'regressed' ? '↓' : '=';
+    const arrow =
+      d.status_change === 'improved'
+        ? '↑'
+        : d.status_change === 'regressed'
+          ? '↓'
+          : '=';
     const beforeStatus = d.before.passed ? 'PASS' : 'FAIL';
     const afterStatus = d.after.passed ? 'PASS' : 'FAIL';
 
@@ -306,7 +364,10 @@ export function formatComparison(c: ComparisonResult): string {
 
     // Duration delta
     let durDelta = '';
-    if (d.before.duration_ms !== undefined && d.after.duration_ms !== undefined) {
+    if (
+      d.before.duration_ms !== undefined &&
+      d.after.duration_ms !== undefined
+    ) {
       const bs = Math.round(d.before.duration_ms / 1000);
       const as = Math.round(d.after.duration_ms / 1000);
       const dd = as - bs;
@@ -317,7 +378,10 @@ export function formatComparison(c: ComparisonResult): string {
     }
 
     let detail = '';
-    if (d.before.detection_rate !== undefined || d.after.detection_rate !== undefined) {
+    if (
+      d.before.detection_rate !== undefined ||
+      d.after.detection_rate !== undefined
+    ) {
       detail = ` ${d.before.detection_rate ?? '?'}→${d.after.detection_rate ?? '?'} det`;
     } else {
       const costBefore = d.before.cost_usd.toFixed(2);
@@ -325,8 +389,11 @@ export function formatComparison(c: ComparisonResult): string {
       detail = ` $${costBefore}→$${costAfter}`;
     }
 
-    const name = d.name.length > 30 ? d.name.slice(0, 27) + '...' : d.name.padEnd(30);
-    lines.push(`  ${name}  ${beforeStatus.padEnd(5)} → ${afterStatus.padEnd(5)}  ${arrow}${detail}${turnsDelta}${durDelta}`);
+    const name =
+      d.name.length > 30 ? d.name.slice(0, 27) + '...' : d.name.padEnd(30);
+    lines.push(
+      `  ${name}  ${beforeStatus.padEnd(5)} → ${afterStatus.padEnd(5)}  ${arrow}${detail}${turnsDelta}${durDelta}`
+    );
   }
 
   lines.push('─'.repeat(70));
@@ -347,7 +414,9 @@ export function formatComparison(c: ComparisonResult): string {
 
   const toolDelta = c.tool_count_after - c.tool_count_before;
   const toolSign = toolDelta >= 0 ? '+' : '';
-  lines.push(`  Tool calls: ${c.tool_count_before} → ${c.tool_count_after} (${toolSign}${toolDelta})`);
+  lines.push(
+    `  Tool calls: ${c.tool_count_before} → ${c.tool_count_after} (${toolSign}${toolDelta})`
+  );
 
   // Tool breakdown (show tools that changed)
   const allTools = new Set<string>();
@@ -400,39 +469,55 @@ export function generateCommentary(c: ComparisonResult): string[] {
   const notes: string[] = [];
 
   // 1. Regressions are the most important signal — call them out first
-  const regressions = c.deltas.filter(d => d.status_change === 'regressed');
+  const regressions = c.deltas.filter((d) => d.status_change === 'regressed');
   if (regressions.length > 0) {
     for (const d of regressions) {
-      notes.push(`REGRESSION: "${d.name}" was passing, now fails. Investigate immediately.`);
+      notes.push(
+        `REGRESSION: "${d.name}" was passing, now fails. Investigate immediately.`
+      );
     }
   }
 
   // 2. Improvements
-  const improvements = c.deltas.filter(d => d.status_change === 'improved');
+  const improvements = c.deltas.filter((d) => d.status_change === 'improved');
   for (const d of improvements) {
     notes.push(`Fixed: "${d.name}" now passes.`);
   }
 
   // 3. Per-test efficiency changes (only for unchanged-status tests — regressions/improvements are already noted)
-  const stable = c.deltas.filter(d => d.status_change === 'unchanged' && d.after.passed);
+  const stable = c.deltas.filter(
+    (d) => d.status_change === 'unchanged' && d.after.passed
+  );
   for (const d of stable) {
     const insights: string[] = [];
 
     // Turns
-    if (d.before.turns_used !== undefined && d.after.turns_used !== undefined && d.before.turns_used > 0) {
+    if (
+      d.before.turns_used !== undefined &&
+      d.after.turns_used !== undefined &&
+      d.before.turns_used > 0
+    ) {
       const turnsDelta = d.after.turns_used - d.before.turns_used;
       const turnsPct = Math.round((turnsDelta / d.before.turns_used) * 100);
       if (Math.abs(turnsPct) >= 20 && Math.abs(turnsDelta) >= 2) {
         if (turnsDelta < 0) {
-          insights.push(`${Math.abs(turnsDelta)} fewer turns (${Math.abs(turnsPct)}% more efficient)`);
+          insights.push(
+            `${Math.abs(turnsDelta)} fewer turns (${Math.abs(turnsPct)}% more efficient)`
+          );
         } else {
-          insights.push(`${turnsDelta} more turns (${turnsPct}% less efficient)`);
+          insights.push(
+            `${turnsDelta} more turns (${turnsPct}% less efficient)`
+          );
         }
       }
     }
 
     // Duration
-    if (d.before.duration_ms !== undefined && d.after.duration_ms !== undefined && d.before.duration_ms > 0) {
+    if (
+      d.before.duration_ms !== undefined &&
+      d.after.duration_ms !== undefined &&
+      d.before.duration_ms > 0
+    ) {
       const durDelta = d.after.duration_ms - d.before.duration_ms;
       const durPct = Math.round((durDelta / d.before.duration_ms) * 100);
       if (Math.abs(durPct) >= 20 && Math.abs(durDelta) >= 5000) {
@@ -445,13 +530,20 @@ export function generateCommentary(c: ComparisonResult): string[] {
     }
 
     // Detection rate
-    if (d.before.detection_rate !== undefined && d.after.detection_rate !== undefined) {
+    if (
+      d.before.detection_rate !== undefined &&
+      d.after.detection_rate !== undefined
+    ) {
       const detDelta = d.after.detection_rate - d.before.detection_rate;
       if (detDelta !== 0) {
         if (detDelta > 0) {
-          insights.push(`detecting ${detDelta} more bug${detDelta > 1 ? 's' : ''}`);
+          insights.push(
+            `detecting ${detDelta} more bug${detDelta > 1 ? 's' : ''}`
+          );
         } else {
-          insights.push(`detecting ${Math.abs(detDelta)} fewer bug${Math.abs(detDelta) > 1 ? 's' : ''} — check prompt quality`);
+          insights.push(
+            `detecting ${Math.abs(detDelta)} fewer bug${Math.abs(detDelta) > 1 ? 's' : ''} — check prompt quality`
+          );
         }
       }
     }
@@ -483,33 +575,56 @@ export function generateCommentary(c: ComparisonResult): string[] {
     if (totalBefore > 0) {
       const costPct = Math.round((c.total_cost_delta / totalBefore) * 100);
       if (Math.abs(costPct) >= 10) {
-        overallParts.push(`${Math.abs(costPct)}% ${costPct < 0 ? 'cheaper' : 'more expensive'} overall`);
+        overallParts.push(
+          `${Math.abs(costPct)}% ${costPct < 0 ? 'cheaper' : 'more expensive'} overall`
+        );
       }
     }
 
     // Total duration
-    const totalDurBefore = c.deltas.reduce((s, d) => s + (d.before.duration_ms || 0), 0);
+    const totalDurBefore = c.deltas.reduce(
+      (s, d) => s + (d.before.duration_ms || 0),
+      0
+    );
     if (totalDurBefore > 0) {
-      const durPct = Math.round((c.total_duration_delta / totalDurBefore) * 100);
+      const durPct = Math.round(
+        (c.total_duration_delta / totalDurBefore) * 100
+      );
       if (Math.abs(durPct) >= 10) {
-        overallParts.push(`${Math.abs(durPct)}% ${durPct < 0 ? 'faster' : 'slower'}`);
+        overallParts.push(
+          `${Math.abs(durPct)}% ${durPct < 0 ? 'faster' : 'slower'}`
+        );
       }
     }
 
     // Total turns
-    const turnsBefore = c.deltas.reduce((s, d) => s + (d.before.turns_used || 0), 0);
-    const turnsAfter = c.deltas.reduce((s, d) => s + (d.after.turns_used || 0), 0);
+    const turnsBefore = c.deltas.reduce(
+      (s, d) => s + (d.before.turns_used || 0),
+      0
+    );
+    const turnsAfter = c.deltas.reduce(
+      (s, d) => s + (d.after.turns_used || 0),
+      0
+    );
     if (turnsBefore > 0) {
-      const turnsPct = Math.round(((turnsAfter - turnsBefore) / turnsBefore) * 100);
+      const turnsPct = Math.round(
+        ((turnsAfter - turnsBefore) / turnsBefore) * 100
+      );
       if (Math.abs(turnsPct) >= 10) {
-        overallParts.push(`${Math.abs(turnsPct)}% ${turnsPct < 0 ? 'fewer' : 'more'} turns`);
+        overallParts.push(
+          `${Math.abs(turnsPct)}% ${turnsPct < 0 ? 'fewer' : 'more'} turns`
+        );
       }
     }
 
     if (overallParts.length > 0) {
-      notes.push(`Overall: ${overallParts.join(', ')}. ${regressions.length === 0 ? 'No regressions.' : ''}`);
+      notes.push(
+        `Overall: ${overallParts.join(', ')}. ${regressions.length === 0 ? 'No regressions.' : ''}`
+      );
     } else if (regressions.length === 0) {
-      notes.push('Stable run — no significant efficiency changes, no regressions.');
+      notes.push(
+        'Stable run — no significant efficiency changes, no regressions.'
+      );
     }
   }
 
@@ -520,8 +635,14 @@ export function generateCommentary(c: ComparisonResult): string[] {
 
 function getGitInfo(): { branch: string; sha: string } {
   try {
-    const branch = spawnSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { stdio: 'pipe', timeout: 5000 });
-    const sha = spawnSync('git', ['rev-parse', '--short', 'HEAD'], { stdio: 'pipe', timeout: 5000 });
+    const branch = spawnSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
+      stdio: 'pipe',
+      timeout: 5000,
+    });
+    const sha = spawnSync('git', ['rev-parse', '--short', 'HEAD'], {
+      stdio: 'pipe',
+      timeout: 5000,
+    });
     return {
       branch: branch.stdout?.toString().trim() || 'unknown',
       sha: sha.stdout?.toString().trim() || 'unknown',
@@ -564,7 +685,7 @@ export class EvalCollector {
       const version = getVersion();
       const totalCost = this.tests.reduce((s, t) => s + t.cost_usd, 0);
       const totalDuration = this.tests.reduce((s, t) => s + t.duration_ms, 0);
-      const passed = this.tests.filter(t => t.passed).length;
+      const passed = this.tests.filter((t) => t.passed).length;
 
       const partial: EvalResult = {
         schema_version: SCHEMA_VERSION,
@@ -588,7 +709,9 @@ export class EvalCollector {
       const tmp = partialPath + '.tmp';
       fs.writeFileSync(tmp, JSON.stringify(partial, null, 2) + '\n');
       fs.renameSync(tmp, partialPath);
-    } catch { /* non-fatal — partial saves are best-effort */ }
+    } catch {
+      /* non-fatal — partial saves are best-effort */
+    }
   }
 
   async finalize(): Promise<string> {
@@ -600,7 +723,7 @@ export class EvalCollector {
     const timestamp = new Date().toISOString();
     const totalCost = this.tests.reduce((s, t) => s + t.cost_usd, 0);
     const totalDuration = this.tests.reduce((s, t) => s + t.duration_ms, 0);
-    const passed = this.tests.filter(t => t.passed).length;
+    const passed = this.tests.filter((t) => t.passed).length;
 
     const result: EvalResult = {
       schema_version: SCHEMA_VERSION,
@@ -620,7 +743,10 @@ export class EvalCollector {
 
     // Write eval file
     fs.mkdirSync(this.evalDir, { recursive: true });
-    const dateStr = timestamp.replace(/[:.]/g, '').replace('T', '-').slice(0, 15);
+    const dateStr = timestamp
+      .replace(/[:.]/g, '')
+      .replace('T', '-')
+      .slice(0, 15);
     const safeBranch = git.branch.replace(/[^a-zA-Z0-9._-]/g, '-');
     const filename = `${version}-${safeBranch}-${this.tier}-${dateStr}.json`;
     const filepath = path.join(this.evalDir, filename);
@@ -631,10 +757,22 @@ export class EvalCollector {
 
     // Auto-compare with previous run
     try {
-      const prevFile = findPreviousRun(this.evalDir, this.tier, git.branch, filepath);
+      const prevFile = findPreviousRun(
+        this.evalDir,
+        this.tier,
+        git.branch,
+        filepath
+      );
       if (prevFile) {
-        const prevResult: EvalResult = JSON.parse(fs.readFileSync(prevFile, 'utf-8'));
-        const comparison = compareEvalResults(prevResult, result, prevFile, filepath);
+        const prevResult: EvalResult = JSON.parse(
+          fs.readFileSync(prevFile, 'utf-8')
+        );
+        const comparison = compareEvalResults(
+          prevResult,
+          result,
+          prevFile,
+          filepath
+        );
         process.stderr.write(formatComparison(comparison) + '\n');
       } else {
         process.stderr.write('\nFirst run — no comparison available.\n');
@@ -646,10 +784,16 @@ export class EvalCollector {
     return filepath;
   }
 
-  private printSummary(result: EvalResult, filepath: string, git: { branch: string; sha: string }): void {
+  private printSummary(
+    result: EvalResult,
+    filepath: string,
+    git: { branch: string; sha: string }
+  ): void {
     const lines: string[] = [];
     lines.push('');
-    lines.push(`Eval Results — v${result.version} @ ${git.branch} (${git.sha}) — ${this.tier}`);
+    lines.push(
+      `Eval Results — v${result.version} @ ${git.branch} (${git.sha}) — ${this.tier}`
+    );
     lines.push('═'.repeat(70));
 
     for (const t of this.tests) {
@@ -662,18 +806,25 @@ export class EvalCollector {
       if (t.detection_rate !== undefined) {
         detail = `${t.detection_rate}/${(t.detected_bugs?.length || 0) + (t.missed_bugs?.length || 0)} det`;
       } else if (t.judge_scores) {
-        const scores = Object.entries(t.judge_scores).map(([k, v]) => `${k[0]}:${v}`).join(' ');
+        const scores = Object.entries(t.judge_scores)
+          .map(([k, v]) => `${k[0]}:${v}`)
+          .join(' ');
         detail = scores;
       }
 
-      const name = t.name.length > 35 ? t.name.slice(0, 32) + '...' : t.name.padEnd(35);
-      lines.push(`  ${name}  ${status}  ${cost.padStart(6)}  ${turns.padStart(4)}  ${dur.padStart(5)}  ${detail}`);
+      const name =
+        t.name.length > 35 ? t.name.slice(0, 32) + '...' : t.name.padEnd(35);
+      lines.push(
+        `  ${name}  ${status}  ${cost.padStart(6)}  ${turns.padStart(4)}  ${dur.padStart(5)}  ${detail}`
+      );
     }
 
     lines.push('─'.repeat(70));
     const totalCost = `$${result.total_cost_usd.toFixed(2)}`;
     const totalDur = `${Math.round(result.total_duration_ms / 1000)}s`;
-    lines.push(`  Total: ${result.passed}/${result.total_tests} passed${' '.repeat(20)}${totalCost.padStart(6)}  ${totalDur}`);
+    lines.push(
+      `  Total: ${result.passed}/${result.total_tests} passed${' '.repeat(20)}${totalCost.padStart(6)}  ${totalDur}`
+    );
     lines.push(`Saved: ${filepath}`);
 
     process.stderr.write(lines.join('\n') + '\n');

@@ -6,8 +6,8 @@
  */
 
 import { existsSync } from 'fs';
-import { join } from 'path';
 import { homedir } from 'os';
+import { join } from 'path';
 
 // ─── Binary Discovery ───────────────────────────────────────────
 
@@ -32,14 +32,30 @@ export function locateBinary(): string | null {
   // Workspace-local takes priority (for development)
   if (root) {
     for (const m of markers) {
-      const local = join(root, m, 'skills', 'gstack', 'browse', 'dist', 'browse');
+      const local = join(
+        root,
+        m,
+        'skills',
+        'gstack',
+        'browse',
+        'dist',
+        'browse'
+      );
       if (existsSync(local)) return local;
     }
   }
 
   // Global fallback
   for (const m of markers) {
-    const global = join(home, m, 'skills', 'gstack', 'browse', 'dist', 'browse');
+    const global = join(
+      home,
+      m,
+      'skills',
+      'gstack',
+      'browse',
+      'dist',
+      'browse'
+    );
     if (existsSync(global)) return global;
   }
 
@@ -51,7 +67,9 @@ export function locateBinary(): string | null {
 function main() {
   const bin = locateBinary();
   if (!bin) {
-    process.stderr.write('ERROR: browse binary not found. Run: cd <skill-dir> && ./setup\n');
+    process.stderr.write(
+      'ERROR: browse binary not found. Run: cd <skill-dir> && ./setup\n'
+    );
     process.exit(1);
   }
 

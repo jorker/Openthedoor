@@ -15,8 +15,23 @@
  *   restores state. Falls back to clean slate on any failure.
  */
 
-import { chromium, type Browser, type BrowserContext, type BrowserContextOptions, type Page, type Locator, type Cookie } from 'playwright';
-import { addConsoleEntry, addNetworkEntry, addDialogEntry, networkBuffer, type DialogEntry } from './buffers';
+import {
+  chromium,
+  type Browser,
+  type BrowserContext,
+  type BrowserContextOptions,
+  type Cookie,
+  type Locator,
+  type Page,
+} from 'playwright';
+
+import {
+  addConsoleEntry,
+  addDialogEntry,
+  addNetworkEntry,
+  networkBuffer,
+  type DialogEntry,
+} from './buffers';
 import { validateNavigationUrl } from './url-validation';
 
 export interface RefEntry {
@@ -30,7 +45,10 @@ export interface BrowserState {
   pages: Array<{
     url: string;
     isActive: boolean;
-    storage: { localStorage: Record<string, string>; sessionStorage: Record<string, string> } | null;
+    storage: {
+      localStorage: Record<string, string>;
+      sessionStorage: Record<string, string>;
+    } | null;
   }>;
 }
 
@@ -66,8 +84,12 @@ export class BrowserManager {
 
     // Chromium crash → exit with clear message
     this.browser.on('disconnected', () => {
-      console.error('[browse] FATAL: Chromium process crashed or was killed. Server exiting.');
-      console.error('[browse] Console/network logs flushed to .gstack/browse-*.log');
+      console.error(
+        '[browse] FATAL: Chromium process crashed or was killed. Server exiting.'
+      );
+      console.error(
+        '[browse] Console/network logs flushed to .gstack/browse-*.log'
+      );
       process.exit(1);
     });
 
@@ -94,7 +116,7 @@ export class BrowserManager {
       // Timeout: headed browser.close() can hang on macOS
       await Promise.race([
         this.browser.close(),
-        new Promise(resolve => setTimeout(resolve, 5000)),
+        new Promise((resolve) => setTimeout(resolve, 5000)),
       ]).catch(() => {});
       this.browser = null;
     }
@@ -108,7 +130,9 @@ export class BrowserManager {
       if (!page) return true; // connected but no pages — still healthy
       await Promise.race([
         page.evaluate('1'),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000)),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('timeout')), 2000)
+        ),
       ]);
       return true;
     } catch {
@@ -169,8 +193,15 @@ export class BrowserManager {
     return this.pages.size;
   }
 
-  async getTabListWithTitles(): Promise<Array<{ id: number; url: string; title: string; active: boolean }>> {
-    const tabs: Array<{ id: number; url: string; title: string; active: boolean }> = [];
+  async getTabListWithTitles(): Promise<
+    Array<{ id: number; url: string; title: string; active: boolean }>
+  > {
+    const tabs: Array<{
+      id: number;
+      url: string;
+      title: string;
+      active: boolean;
+    }> = [];
     for (const [id, page] of this.pages) {
       tabs.push({
         id,
@@ -185,7 +216,8 @@ export class BrowserManager {
   // ─── Page Access ───────────────────────────────────────────
   getPage(): Page {
     const page = this.pages.get(this.activeTabId);
-    if (!page) throw new Error('No active page. Use "browse goto <url>" first.');
+    if (!page)
+      throw new Error('No active page. Use "browse goto <url>" first.');
     return page;
   }
 
@@ -210,7 +242,9 @@ export class BrowserManager {
    * Resolve a selector that may be a @ref (e.g., "@e3", "@c1") or a CSS selector.
    * Returns { locator } for refs or { selector } for CSS selectors.
    */
-  async resolveRef(selector: string): Promise<{ locator: Locator } | { selector: string }> {
+  async resolveRef(
+    selector: string
+  ): Promise<{ locator: Locator } | { selector: string }> {
     if (selector.startsWith('@e') || selector.startsWith('@c')) {
       const ref = selector.slice(1); // "e3" or "c1"
       const entry = this.refMap.get(ref);
@@ -223,7 +257,7 @@ export class BrowserManager {
       if (count === 0) {
         throw new Error(
           `Ref ${selector} (${entry.role} "${entry.name}") is stale — element no longer exists. ` +
-          `Run 'snapshot' for fresh refs.`
+            `Run 'snapshot' for fresh refs.`
         );
       }
       return { locator: entry.locator };
@@ -344,23 +378,31 @@ export class BrowserManager {
       this.wirePageEvents(page);
 
       if (saved.url) {
-        await page.goto(saved.url, { waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {});
+        await page
+          .goto(saved.url, { waitUntil: 'domcontentloaded', timeout: 15000 })
+          .catch(() => {});
       }
 
       if (saved.storage) {
         try {
-          await page.evaluate((s: { localStorage: Record<string, string>; sessionStorage: Record<string, string> }) => {
-            if (s.localStorage) {
-              for (const [k, v] of Object.entries(s.localStorage)) {
-                localStorage.setItem(k, v);
+          await page.evaluate(
+            (s: {
+              localStorage: Record<string, string>;
+              sessionStorage: Record<string, string>;
+            }) => {
+              if (s.localStorage) {
+                for (const [k, v] of Object.entries(s.localStorage)) {
+                  localStorage.setItem(k, v);
+                }
               }
-            }
-            if (s.sessionStorage) {
-              for (const [k, v] of Object.entries(s.sessionStorage)) {
-                sessionStorage.setItem(k, v);
+              if (s.sessionStorage) {
+                for (const [k, v] of Object.entries(s.sessionStorage)) {
+                  sessionStorage.setItem(k, v);
+                }
               }
-            }
-          }, saved.storage);
+            },
+            saved.storage
+          );
         } catch {}
       }
 
@@ -494,8 +536,12 @@ export class BrowserManager {
 
       // Register crash handler on new browser
       this.browser.on('disconnected', () => {
-        console.error('[browse] FATAL: Chromium process crashed or was killed. Server exiting.');
-        console.error('[browse] Console/network logs flushed to .gstack/browse-*.log');
+        console.error(
+          '[browse] FATAL: Chromium process crashed or was killed. Server exiting.'
+        );
+        console.error(
+          '[browse] Console/network logs flushed to .gstack/browse-*.log'
+        );
         process.exit(1);
       });
 
@@ -568,7 +614,9 @@ export class BrowserManager {
         message: dialog.message(),
         defaultValue: dialog.defaultValue() || undefined,
         action: this.dialogAutoAccept ? 'accepted' : 'dismissed',
-        response: this.dialogAutoAccept ? (this.dialogPromptText ?? undefined) : undefined,
+        response: this.dialogAutoAccept
+          ? (this.dialogPromptText ?? undefined)
+          : undefined,
       };
       addDialogEntry(entry);
 
@@ -606,7 +654,11 @@ export class BrowserManager {
       for (let i = networkBuffer.length - 1; i >= 0; i--) {
         const entry = networkBuffer.get(i);
         if (entry && entry.url === url && !entry.status) {
-          networkBuffer.set(i, { ...entry, status, duration: Date.now() - entry.timestamp });
+          networkBuffer.set(i, {
+            ...entry,
+            status,
+            duration: Date.now() - entry.timestamp,
+          });
           break;
         }
       }

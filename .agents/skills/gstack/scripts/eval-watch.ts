@@ -9,8 +9,8 @@
  */
 
 import * as fs from 'fs';
-import * as path from 'path';
 import * as os from 'os';
+import * as path from 'path';
 
 const GSTACK_DEV_DIR = path.join(os.homedir(), '.gstack-dev');
 const HEARTBEAT_PATH = path.join(GSTACK_DEV_DIR, 'e2e-live.json');
@@ -71,7 +71,10 @@ function formatDuration(sec: number): string {
 }
 
 /** Render dashboard from heartbeat + partial data. Pure function for testability. */
-export function renderDashboard(heartbeat: HeartbeatData | null, partial: PartialData | null): string {
+export function renderDashboard(
+  heartbeat: HeartbeatData | null,
+  partial: PartialData | null
+): string {
   const lines: string[] = [];
 
   if (!heartbeat && !partial) {
@@ -96,23 +99,31 @@ export function renderDashboard(heartbeat: HeartbeatData | null, partial: Partia
       const cost = `$${t.cost_usd.toFixed(2)}`;
       const dur = `${Math.round(t.duration_ms / 1000)}s`;
       const turns = t.turns_used !== undefined ? `${t.turns_used} turns` : '';
-      const name = t.name.length > 30 ? t.name.slice(0, 27) + '...' : t.name.padEnd(30);
-      lines.push(` ${icon} ${name}  ${cost.padStart(6)}  ${dur.padStart(5)}  ${turns}`);
+      const name =
+        t.name.length > 30 ? t.name.slice(0, 27) + '...' : t.name.padEnd(30);
+      lines.push(
+        ` ${icon} ${name}  ${cost.padStart(6)}  ${dur.padStart(5)}  ${turns}`
+      );
     }
   }
 
   // Current test from heartbeat
   if (heartbeat && heartbeat.status === 'running') {
-    const name = heartbeat.currentTest.length > 30
-      ? heartbeat.currentTest.slice(0, 27) + '...'
-      : heartbeat.currentTest.padEnd(30);
-    lines.push(` \u29D6 ${name}  ${formatDuration(heartbeat.elapsedSec).padStart(6)}  turn ${heartbeat.turn}   last: ${heartbeat.lastTool}`);
+    const name =
+      heartbeat.currentTest.length > 30
+        ? heartbeat.currentTest.slice(0, 27) + '...'
+        : heartbeat.currentTest.padEnd(30);
+    lines.push(
+      ` \u29D6 ${name}  ${formatDuration(heartbeat.elapsedSec).padStart(6)}  turn ${heartbeat.turn}   last: ${heartbeat.lastTool}`
+    );
 
     // Stale detection
     const lastToolTime = new Date(heartbeat.lastToolAt).getTime();
     const staleSec = Math.round((Date.now() - lastToolTime) / 1000);
     if (staleSec > STALE_THRESHOLD_SEC) {
-      lines.push(` \u26A0  STALE: last tool call was ${formatDuration(staleSec)} ago \u2014 run may have crashed`);
+      lines.push(
+        ` \u26A0  STALE: last tool call was ${formatDuration(staleSec)} ago \u2014 run may have crashed`
+      );
     }
   }
 
@@ -122,10 +133,17 @@ export function renderDashboard(heartbeat: HeartbeatData | null, partial: Partia
   const completedCount = partial?.tests?.length || 0;
   const totalCost = partial?.total_cost_usd || 0;
   const running = heartbeat?.status === 'running' ? 1 : 0;
-  lines.push(` Completed: ${completedCount}  Running: ${running}  Cost: $${totalCost.toFixed(2)}  Elapsed: ${formatDuration(elapsed)}`);
+  lines.push(
+    ` Completed: ${completedCount}  Running: ${running}  Cost: $${totalCost.toFixed(2)}  Elapsed: ${formatDuration(elapsed)}`
+  );
 
   if (heartbeat?.runId) {
-    const logPath = path.join(GSTACK_DEV_DIR, 'e2e-runs', heartbeat.runId, 'progress.log');
+    const logPath = path.join(
+      GSTACK_DEV_DIR,
+      'e2e-runs',
+      heartbeat.runId,
+      'progress.log'
+    );
     lines.push(` Logs: ${logPath}`);
   }
 
@@ -143,9 +161,15 @@ if (import.meta.main) {
 
     // Auto-clear heartbeat if the process is dead
     if (heartbeat?.pid && !isProcessAlive(heartbeat.pid)) {
-      try { fs.unlinkSync(HEARTBEAT_PATH); } catch { /* already gone */ }
+      try {
+        fs.unlinkSync(HEARTBEAT_PATH);
+      } catch {
+        /* already gone */
+      }
       process.stdout.write('\x1B[2J\x1B[H');
-      process.stdout.write(`Cleared stale heartbeat — PID ${heartbeat.pid} is no longer running.\n\n`);
+      process.stdout.write(
+        `Cleared stale heartbeat — PID ${heartbeat.pid} is no longer running.\n\n`
+      );
       heartbeat = null;
     }
 
@@ -155,15 +179,25 @@ if (import.meta.main) {
 
     // --tail: show last 10 lines of progress.log
     if (showTail && heartbeat?.runId) {
-      const logPath = path.join(GSTACK_DEV_DIR, 'e2e-runs', heartbeat.runId, 'progress.log');
+      const logPath = path.join(
+        GSTACK_DEV_DIR,
+        'e2e-runs',
+        heartbeat.runId,
+        'progress.log'
+      );
       try {
         const content = fs.readFileSync(logPath, 'utf-8');
-        const tail = content.split('\n').filter(l => l.trim()).slice(-10);
+        const tail = content
+          .split('\n')
+          .filter((l) => l.trim())
+          .slice(-10);
         process.stdout.write('\nRecent progress:\n');
         for (const line of tail) {
           process.stdout.write(line + '\n');
         }
-      } catch { /* log file may not exist yet */ }
+      } catch {
+        /* log file may not exist yet */
+      }
     }
   };
 

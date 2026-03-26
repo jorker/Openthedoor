@@ -19,6 +19,7 @@ allowed-tools:
   - AskUserQuestion
   - WebSearch
 ---
+
 <!-- AUTO-GENERATED from SKILL.md.tmpl — do not edit directly -->
 <!-- Regenerate: bun run gen:skill-docs -->
 
@@ -75,6 +76,7 @@ ask the user about telemetry. Use AskUserQuestion:
 > Change anytime with `gstack-config set telemetry off`.
 
 Options:
+
 - A) Help gstack get better! (recommended)
 - B) No thanks
 
@@ -82,10 +84,11 @@ If A: run `~/.Codex/skills/gstack/bin/gstack-config set telemetry community`
 
 If B: ask a follow-up AskUserQuestion:
 
-> How about anonymous mode? We just learn that *someone* used gstack — no unique ID,
+> How about anonymous mode? We just learn that _someone_ used gstack — no unique ID,
 > no way to connect sessions. Just a counter that helps us know if anyone's out there.
 
 Options:
+
 - A) Sure, anonymous is fine
 - B) No thanks, fully off
 
@@ -93,6 +96,7 @@ If B→A: run `~/.Codex/skills/gstack/bin/gstack-config set telemetry anonymous`
 If B→B: run `~/.Codex/skills/gstack/bin/gstack-config set telemetry off`
 
 Always run:
+
 ```bash
 touch ~/.gstack/.telemetry-prompted
 ```
@@ -102,6 +106,7 @@ This only happens once. If `TEL_PROMPTED` is `yes`, skip this entirely.
 ## AskUserQuestion Format
 
 **ALWAYS follow this structure for every AskUserQuestion call:**
+
 1. **Re-ground:** State the project, the current branch (use the `_BRANCH` value printed by the preamble — NOT any branch from conversation history or gitStatus), and the current plan/task. (1-2 sentences)
 2. **Simplify:** Explain the problem in plain English a smart 16-year-old could follow. No raw function names, no internal jargon, no implementation details. Use concrete examples and analogies. Say what it DOES, not what it's called.
 3. **Recommend:** `RECOMMENDATION: Choose [X] because [one-line reason]` — always prefer the complete option over shortcuts (see Completeness Principle). Include `Completeness: X/10` for each option. Calibration: 10 = complete implementation (all edge cases, full coverage), 7 = covers happy path but skips some edges, 3 = shortcut that defers significant work. If both options are 8+, pick the higher; if one is ≤5, flag it.
@@ -119,18 +124,19 @@ AI-assisted coding makes the marginal cost of completeness near-zero. When you p
 - **Lake vs. ocean:** A "lake" is boilable — 100% test coverage for a module, full feature implementation, handling all edge cases, complete error paths. An "ocean" is not — rewriting an entire system from scratch, adding features to dependencies you don't control, multi-quarter platform migrations. Recommend boiling lakes. Flag oceans as out of scope.
 - **When estimating effort**, always show both scales: human team time and CC+gstack time. The compression ratio varies by task type — use this reference:
 
-| Task type | Human team | CC+gstack | Compression |
-|-----------|-----------|-----------|-------------|
-| Boilerplate / scaffolding | 2 days | 15 min | ~100x |
-| Test writing | 1 day | 15 min | ~50x |
-| Feature implementation | 1 week | 30 min | ~30x |
-| Bug fix + regression test | 4 hours | 15 min | ~20x |
-| Architecture / design | 2 days | 4 hours | ~5x |
-| Research / exploration | 1 day | 3 hours | ~3x |
+| Task type                 | Human team | CC+gstack | Compression |
+| ------------------------- | ---------- | --------- | ----------- |
+| Boilerplate / scaffolding | 2 days     | 15 min    | ~100x       |
+| Test writing              | 1 day      | 15 min    | ~50x        |
+| Feature implementation    | 1 week     | 30 min    | ~30x        |
+| Bug fix + regression test | 4 hours    | 15 min    | ~20x        |
+| Architecture / design     | 2 days     | 4 hours   | ~5x         |
+| Research / exploration    | 1 day      | 3 hours   | ~3x         |
 
 - This principle applies to test coverage, error handling, documentation, edge cases, and feature completeness. Don't skip the last 10% to "save time" — with AI, that 10% costs seconds.
 
 **Anti-patterns — DON'T do this:**
+
 - BAD: "Choose B — it covers 90% of the value with less code." (If A is only 70 lines more, choose A.)
 - BAD: "We can skip edge case handling to save time." (Edge case handling costs minutes with CC.)
 - BAD: "Let's defer test coverage to a follow-up PR." (Tests are the cheapest lake to boil.)
@@ -162,7 +168,9 @@ Hey gstack team — ran into this while using /{skill-name}:
 
 ## Raw output
 ```
+
 {paste the actual error or unexpected output here}
+
 ```
 
 ## What would make this a 10
@@ -176,6 +184,7 @@ Slug: lowercase, hyphens, max 60 chars (e.g. `browse-js-no-await`). Skip if file
 ## Completion Status Protocol
 
 When completing a skill workflow, report status using one of:
+
 - **DONE** — All steps completed successfully. Evidence provided for each claim.
 - **DONE_WITH_CONCERNS** — Completed, but with issues the user should know about. List each concern.
 - **BLOCKED** — Cannot proceed. State what is blocking and what was tried.
@@ -186,11 +195,13 @@ When completing a skill workflow, report status using one of:
 It is always OK to stop and say "this is too hard for me" or "I'm not confident in this result."
 
 Bad work is worse than no work. You will not be penalized for escalating.
+
 - If you have attempted a task 3 times without success, STOP and escalate.
 - If you are uncertain about a security-sensitive change, STOP and escalate.
 - If the scope of work exceeds what you can verify, STOP and escalate.
 
 Escalation format:
+
 ```
 STATUS: BLOCKED | NEEDS_CONTEXT
 REASON: [1-2 sentences]
@@ -263,7 +274,7 @@ ls .context/*office-hours* .context/attachments/*office-hours* 2>/dev/null | hea
 
 If office-hours output exists, read it — the product context is pre-filled.
 
-If the codebase is empty and purpose is unclear, say: *"I don't have a clear picture of what you're building yet. Want to explore first with `/office-hours`? Once we know the product direction, we can set up the design system."*
+If the codebase is empty and purpose is unclear, say: _"I don't have a clear picture of what you're building yet. Want to explore first with `/office-hours`? Once we know the product direction, we can set up the design system."_
 
 **Find the browse binary (optional — enables visual competitive research):**
 
@@ -282,6 +293,7 @@ fi
 ```
 
 If `NEEDS_SETUP`:
+
 1. Tell the user: "gstack browse needs a one-time build (~10 seconds). OK to proceed?" Then STOP and wait.
 2. Run: `cd <SKILL_DIR> && ./setup`
 3. If `bun` is not installed: `curl -fsSL https://bun.sh/install | bash`
@@ -295,12 +307,13 @@ If browse is not available, that's fine — visual research is optional. The ski
 Ask the user a single question that covers everything you need to know. Pre-fill what you can infer from the codebase.
 
 **AskUserQuestion Q1 — include ALL of these:**
+
 1. Confirm what the product is, who it's for, what space/industry
 2. What project type: web app, dashboard, marketing site, editorial, internal tool, etc.
 3. "Want me to research what top products in your space are doing for design, or should I work from my design knowledge?"
 4. **Explicitly say:** "At any point you can just drop into chat and we'll talk through anything — this isn't a rigid form, it's a conversation."
 
-If the README or office-hours output gives you enough context, pre-fill and confirm: *"From what I can see, this is [X] for [Y] in the [Z] space. Sound right? And would you like me to research what's out there in this space, or should I work from what I know?"*
+If the README or office-hours output gives you enough context, pre-fill and confirm: _"From what I can see, this is [X] for [Y] in the [Z] space. Sound right? And would you like me to research what's out there in this space, or should I work from what I know?"_
 
 ---
 
@@ -311,6 +324,7 @@ If the user wants competitive research:
 **Step 1: Identify what's out there via WebSearch**
 
 Use WebSearch to find 5-10 products in their space. Search for:
+
 - "[product category] website design"
 - "[product category] best websites 2025"
 - "best [industry] web apps"
@@ -336,9 +350,11 @@ If browse is not available, rely on WebSearch results and your built-in design k
 The goal of research is NOT to copy. It is to get in the ballpark — to understand the visual language users in this category already expect. This gives you the baseline. The interesting design work starts after you have the baseline: deciding where to follow conventions (so the product feels literate) and where to break from them (so the product is memorable).
 
 Summarize conversationally:
+
 > "I looked at what's out there. Here's the landscape: they converge on [patterns]. Most of them feel [observation — e.g., interchangeable, polished but generic, etc.]. The opportunity to stand out is [gap]. Here's where I'd play it safe and where I'd take a risk..."
 
 **Graceful degradation:**
+
 - Browse available → screenshots + snapshots + WebSearch (richest research)
 - Browse unavailable → WebSearch only (still good)
 - WebSearch also unavailable → agent's built-in design knowledge (always works)
@@ -385,6 +401,7 @@ The SAFE/RISK breakdown is critical. Design coherence is table stakes — every 
 ### Your Design Knowledge (use to inform proposals — do NOT display as tables)
 
 **Aesthetic directions** (pick the one that fits the product):
+
 - Brutally Minimal — Type and whitespace only. No decoration. Modernist.
 - Maximalist Chaos — Dense, layered, pattern-heavy. Y2K meets contemporary.
 - Retro-Futuristic — Vintage tech nostalgia. CRT glow, pixel grids, warm monospace.
@@ -405,6 +422,7 @@ The SAFE/RISK breakdown is critical. Design coherence is table stakes — every 
 **Motion approaches:** minimal-functional (only transitions that aid comprehension) / intentional (subtle entrance animations, meaningful state transitions) / expressive (full choreography, scroll-driven, playful)
 
 **Font recommendations by purpose:**
+
 - Display/Hero: Satoshi, General Sans, Instrument Serif, Fraunces, Clash Grotesk, Cabinet Grotesk
 - Body: Instrument Sans, DM Sans, Source Sans 3, Geist, Plus Jakarta Sans, Outfit
 - Data/Tables: Geist (tabular-nums), DM Sans (tabular-nums), JetBrains Mono, IBM Plex Mono
@@ -417,6 +435,7 @@ Papyrus, Comic Sans, Lobster, Impact, Jokerman, Bleeding Cowboys, Permanent Mark
 Inter, Roboto, Arial, Helvetica, Open Sans, Lato, Montserrat, Poppins
 
 **AI slop anti-patterns** (never include in your recommendations):
+
 - Purple/violet gradients as default accent
 - 3-column feature grid with icons in colored circles
 - Centered everything with uniform spacing
@@ -490,7 +509,7 @@ The agent writes a **single, self-contained HTML file** (no framework dependenci
 
 The page should make the user think "oh nice, they thought of this." It's selling the design system by showing what the product could feel like, not just listing hex codes and font names.
 
-If `open` fails (headless environment), tell the user: *"I wrote the preview to [path] — open it in your browser to see the fonts and colors rendered."*
+If `open` fails (headless environment), tell the user: _"I wrote the preview to [path] — open it in your browser to see the fonts and colors rendered."_
 
 If the user says skip the preview, go directly to Phase 6.
 
@@ -504,18 +523,21 @@ Write `DESIGN.md` to the repo root with this structure:
 # Design System — [Project Name]
 
 ## Product Context
+
 - **What this is:** [1-2 sentence description]
 - **Who it's for:** [target users]
 - **Space/industry:** [category, peers]
 - **Project type:** [web app / dashboard / marketing site / editorial / internal tool]
 
 ## Aesthetic Direction
+
 - **Direction:** [name]
 - **Decoration level:** [minimal / intentional / expressive]
 - **Mood:** [1-2 sentence description of how the product should feel]
 - **Reference sites:** [URLs, if research was done]
 
 ## Typography
+
 - **Display/Hero:** [font name] — [rationale]
 - **Body:** [font name] — [rationale]
 - **UI/Labels:** [font name or "same as body"]
@@ -525,6 +547,7 @@ Write `DESIGN.md` to the repo root with this structure:
 - **Scale:** [modular scale with specific px/rem values for each level]
 
 ## Color
+
 - **Approach:** [restrained / balanced / expressive]
 - **Primary:** [hex] — [what it represents, usage]
 - **Secondary:** [hex] — [usage]
@@ -533,24 +556,28 @@ Write `DESIGN.md` to the repo root with this structure:
 - **Dark mode:** [strategy — redesign surfaces, reduce saturation 10-20%]
 
 ## Spacing
+
 - **Base unit:** [4px or 8px]
 - **Density:** [compact / comfortable / spacious]
 - **Scale:** 2xs(2) xs(4) sm(8) md(16) lg(24) xl(32) 2xl(48) 3xl(64)
 
 ## Layout
+
 - **Approach:** [grid-disciplined / creative-editorial / hybrid]
 - **Grid:** [columns per breakpoint]
 - **Max content width:** [value]
 - **Border radius:** [hierarchical scale — e.g., sm:4px, md:8px, lg:12px, full:9999px]
 
 ## Motion
+
 - **Approach:** [minimal-functional / intentional / expressive]
 - **Easing:** enter(ease-out) exit(ease-in) move(ease-in-out)
 - **Duration:** micro(50-100ms) short(150-250ms) medium(250-400ms) long(400-700ms)
 
 ## Decisions Log
-| Date | Decision | Rationale |
-|------|----------|-----------|
+
+| Date    | Decision                      | Rationale                                                             |
+| ------- | ----------------------------- | --------------------------------------------------------------------- |
 | [today] | Initial design system created | Created by /design-consultation based on [product context / research] |
 ```
 
@@ -558,6 +585,7 @@ Write `DESIGN.md` to the repo root with this structure:
 
 ```markdown
 ## Design System
+
 Always read DESIGN.md before making any visual or UI decisions.
 All font choices, colors, spacing, and aesthetic direction are defined there.
 Do not deviate without explicit user approval.
@@ -567,6 +595,7 @@ In QA mode, flag any code that doesn't match DESIGN.md.
 **AskUserQuestion Q-final — show summary and confirm:**
 
 List all decisions. Flag any that used agent defaults without explicit user confirmation (the user should know what they're shipping). Options:
+
 - A) Ship it — write DESIGN.md and AGENTS.md
 - B) I want to change something (specify what)
 - C) Start over

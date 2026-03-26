@@ -1,4 +1,5 @@
-import { describe, test, expect } from 'bun:test';
+import { describe, expect, test } from 'bun:test';
+
 import { parseNDJSON } from './session-runner';
 
 // Fixture: minimal NDJSON session (system init, assistant with tool_use, tool result, assistant text, result)
@@ -85,10 +86,7 @@ describe('parseNDJSON', () => {
   });
 
   test('handles assistant event with no content array', () => {
-    const lines = [
-      '{"type":"assistant","message":{}}',
-      '{"type":"assistant"}',
-    ];
+    const lines = ['{"type":"assistant","message":{}}', '{"type":"assistant"}'];
     const parsed = parseNDJSON(lines);
     expect(parsed.turnCount).toBe(2);
     expect(parsed.toolCalls).toHaveLength(0);

@@ -7,22 +7,24 @@
  *   bun run eval:compare <file>             # compare file against its predecessor
  *   bun run eval:compare <file-a> <file-b>  # compare two specific files
  */
-
 import * as fs from 'fs';
-import * as path from 'path';
 import * as os from 'os';
+import * as path from 'path';
+
 import {
-  findPreviousRun,
   compareEvalResults,
+  findPreviousRun,
   formatComparison,
+  type EvalResult,
 } from '../test/helpers/eval-store';
-import type { EvalResult } from '../test/helpers/eval-store';
 
 const EVAL_DIR = path.join(os.homedir(), '.gstack-dev', 'evals');
 
 function loadResult(filepath: string): EvalResult {
   // Resolve relative to EVAL_DIR if not absolute
-  const resolved = path.isAbsolute(filepath) ? filepath : path.join(EVAL_DIR, filepath);
+  const resolved = path.isAbsolute(filepath)
+    ? filepath
+    : path.join(EVAL_DIR, filepath);
   if (!fs.existsSync(resolved)) {
     console.error(`File not found: ${resolved}`);
     process.exit(1);
@@ -42,9 +44,16 @@ if (args.length === 2) {
 } else if (args.length === 1) {
   // One file — find its predecessor
   afterFile = args[0];
-  const resolved = path.isAbsolute(afterFile) ? afterFile : path.join(EVAL_DIR, afterFile);
+  const resolved = path.isAbsolute(afterFile)
+    ? afterFile
+    : path.join(EVAL_DIR, afterFile);
   const afterResult = loadResult(resolved);
-  const prev = findPreviousRun(EVAL_DIR, afterResult.tier, afterResult.branch, resolved);
+  const prev = findPreviousRun(
+    EVAL_DIR,
+    afterResult.tier,
+    afterResult.branch,
+    resolved
+  );
   if (!prev) {
     console.log('No previous run found to compare against.');
     process.exit(0);
@@ -54,8 +63,9 @@ if (args.length === 2) {
   // No args — find two most recent of the same tier
   let files: string[];
   try {
-    files = fs.readdirSync(EVAL_DIR)
-      .filter(f => f.endsWith('.json'))
+    files = fs
+      .readdirSync(EVAL_DIR)
+      .filter((f) => f.endsWith('.json'))
       .sort()
       .reverse();
   } catch {
@@ -71,7 +81,12 @@ if (args.length === 2) {
   // Most recent file
   afterFile = path.join(EVAL_DIR, files[0]);
   const afterResult = loadResult(afterFile);
-  const prev = findPreviousRun(EVAL_DIR, afterResult.tier, afterResult.branch, afterFile);
+  const prev = findPreviousRun(
+    EVAL_DIR,
+    afterResult.tier,
+    afterResult.branch,
+    afterFile
+  );
   if (!prev) {
     console.log('No previous run of the same tier found to compare against.');
     process.exit(0);
@@ -84,13 +99,22 @@ const afterResult = loadResult(afterFile);
 
 // Warn if different tiers
 if (beforeResult.tier !== afterResult.tier) {
-  console.warn(`Warning: comparing different tiers (${beforeResult.tier} vs ${afterResult.tier})`);
+  console.warn(
+    `Warning: comparing different tiers (${beforeResult.tier} vs ${afterResult.tier})`
+  );
 }
 
 // Warn on schema mismatch
 if (beforeResult.schema_version !== afterResult.schema_version) {
-  console.warn(`Warning: schema version mismatch (${beforeResult.schema_version} vs ${afterResult.schema_version})`);
+  console.warn(
+    `Warning: schema version mismatch (${beforeResult.schema_version} vs ${afterResult.schema_version})`
+  );
 }
 
-const comparison = compareEvalResults(beforeResult, afterResult, beforeFile, afterFile);
+const comparison = compareEvalResults(
+  beforeResult,
+  afterResult,
+  beforeFile,
+  afterFile
+);
 console.log(formatComparison(comparison));

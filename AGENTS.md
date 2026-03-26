@@ -1,4 +1,5 @@
 Primary docs:
+
 - `docs/PRODUCT_SENSE.md`: users, value, scope, priorities, metrics
 - `docs/DESIGN.md`: interaction model and UX principles
 - `docs/product-specs/`: stable capability behavior and business rules

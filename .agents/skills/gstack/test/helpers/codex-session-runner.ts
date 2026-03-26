@@ -13,20 +13,20 @@
  */
 
 import * as fs from 'fs';
-import * as path from 'path';
 import * as os from 'os';
+import * as path from 'path';
 
 // --- Interfaces ---
 
 export interface CodexResult {
-  output: string;           // Full agent message text
-  reasoning: string[];      // [codex thinking] blocks
-  toolCalls: string[];      // [codex ran] commands
-  tokens: number;           // Total tokens used
-  exitCode: number;         // Process exit code
-  durationMs: number;       // Wall clock time
+  output: string; // Full agent message text
+  reasoning: string[]; // [codex thinking] blocks
+  toolCalls: string[]; // [codex ran] commands
+  tokens: number; // Total tokens used
+  exitCode: number; // Process exit code
+  durationMs: number; // Wall clock time
   sessionId: string | null; // Thread ID for session continuity
-  rawLines: string[];       // Raw JSONL lines for debugging
+  rawLines: string[]; // Raw JSONL lines for debugging
 }
 
 // --- JSONL parser (ported from Python in codex/SKILL.md.tmpl) ---
@@ -79,10 +79,13 @@ export function parseCodexJSONL(lines: string[]): ParsedCodexJSONL {
         }
       } else if (t === 'turn.completed') {
         const usage = obj.usage || {};
-        const turnTokens = (usage.input_tokens || 0) + (usage.output_tokens || 0);
+        const turnTokens =
+          (usage.input_tokens || 0) + (usage.output_tokens || 0);
         tokens += turnTokens;
       }
-    } catch { /* skip malformed lines */ }
+    } catch {
+      /* skip malformed lines */
+    }
   }
 
   return {
@@ -105,7 +108,7 @@ export function parseCodexJSONL(lines: string[]): ParsedCodexJSONL {
 export function installSkillToTempHome(
   skillDir: string,
   skillName: string,
-  tempHome?: string,
+  tempHome?: string
 ): string {
   const home = tempHome || fs.mkdtempSync(path.join(os.tmpdir(), 'codex-e2e-'));
   const destDir = path.join(home, '.codex', 'skills', skillName);
@@ -128,12 +131,12 @@ export function installSkillToTempHome(
  * and returns a CodexResult. Skips gracefully if codex binary is not found.
  */
 export async function runCodexSkill(opts: {
-  skillDir: string;         // Path to skill directory containing SKILL.md
-  prompt: string;           // What to ask Codex to do with the skill
-  timeoutMs?: number;       // Default 300000 (5 min)
-  cwd?: string;             // Working directory
-  skillName?: string;       // Skill name for installation (default: dirname)
-  sandbox?: string;         // Sandbox mode (default: 'read-only')
+  skillDir: string; // Path to skill directory containing SKILL.md
+  prompt: string; // What to ask Codex to do with the skill
+  timeoutMs?: number; // Default 300000 (5 min)
+  cwd?: string; // Working directory
+  skillName?: string; // Skill name for installation (default: dirname)
+  sandbox?: string; // Sandbox mode (default: 'read-only')
 }): Promise<CodexResult> {
   const {
     skillDir,
@@ -235,16 +238,24 @@ export async function runCodexSkill(opts: {
               const item = event.item;
               if (item.type === 'command_execution' && item.command) {
                 const elapsed = Math.round((Date.now() - startTime) / 1000);
-                process.stderr.write(`  [codex ${elapsed}s] ran: ${item.command.slice(0, 100)}\n`);
+                process.stderr.write(
+                  `  [codex ${elapsed}s] ran: ${item.command.slice(0, 100)}\n`
+                );
               } else if (item.type === 'agent_message' && item.text) {
                 const elapsed = Math.round((Date.now() - startTime) / 1000);
-                process.stderr.write(`  [codex ${elapsed}s] message: ${item.text.slice(0, 100)}\n`);
+                process.stderr.write(
+                  `  [codex ${elapsed}s] message: ${item.text.slice(0, 100)}\n`
+                );
               }
             }
-          } catch { /* skip — parseCodexJSONL will handle it later */ }
+          } catch {
+            /* skip — parseCodexJSONL will handle it later */
+          }
         }
       }
-    } catch { /* stream read error — fall through to exit code handling */ }
+    } catch {
+      /* stream read error — fall through to exit code handling */
+    }
 
     // Flush remaining buffer
     if (buf.trim()) {
@@ -277,6 +288,10 @@ export async function runCodexSkill(opts: {
     };
   } finally {
     // Clean up temp HOME
-    try { fs.rmSync(tempHome, { recursive: true, force: true }); } catch { /* non-fatal */ }
+    try {
+      fs.rmSync(tempHome, { recursive: true, force: true });
+    } catch {
+      /* non-fatal */
+    }
   }
 }

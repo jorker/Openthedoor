@@ -7,11 +7,11 @@
  *   - Template coverage (which SKILL.md files have .tmpl sources)
  *   - Freshness check (generated files match committed files)
  */
-
-import { validateSkill } from '../test/helpers/skill-parser';
+import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import { execSync } from 'child_process';
+
+import { validateSkill } from '../test/helpers/skill-parser';
 
 const ROOT = path.resolve(import.meta.dir, '..');
 
@@ -31,7 +31,7 @@ const SKILL_FILES = [
   'design-review/SKILL.md',
   'gstack-upgrade/SKILL.md',
   'document-release/SKILL.md',
-].filter(f => fs.existsSync(path.join(ROOT, f)));
+].filter((f) => fs.existsSync(path.join(ROOT, f)));
 
 let hasErrors = false;
 
@@ -43,7 +43,9 @@ for (const file of SKILL_FILES) {
   const result = validateSkill(fullPath);
 
   if (result.warnings.length > 0) {
-    console.log(`  \u26a0\ufe0f  ${file.padEnd(30)} — ${result.warnings.join(', ')}`);
+    console.log(
+      `  \u26a0\ufe0f  ${file.padEnd(30)} — ${result.warnings.join(', ')}`
+    );
     continue;
   }
 
@@ -53,7 +55,9 @@ for (const file of SKILL_FILES) {
 
   if (totalInvalid > 0 || totalSnapErrors > 0) {
     hasErrors = true;
-    console.log(`  \u274c ${file.padEnd(30)} — ${totalValid} valid, ${totalInvalid} invalid, ${totalSnapErrors} snapshot errors`);
+    console.log(
+      `  \u274c ${file.padEnd(30)} — ${totalValid} valid, ${totalInvalid} invalid, ${totalSnapErrors} snapshot errors`
+    );
     for (const inv of result.invalid) {
       console.log(`      line ${inv.line}: unknown command '${inv.command}'`);
     }
@@ -61,7 +65,9 @@ for (const file of SKILL_FILES) {
       console.log(`      line ${se.command.line}: ${se.error}`);
     }
   } else {
-    console.log(`  \u2705 ${file.padEnd(30)} — ${totalValid} commands, all valid`);
+    console.log(
+      `  \u2705 ${file.padEnd(30)} — ${totalValid} commands, all valid`
+    );
   }
 }
 
@@ -82,7 +88,9 @@ for (const { tmpl, output } of TEMPLATES) {
   }
   if (!fs.existsSync(outPath)) {
     hasErrors = true;
-    console.log(`  \u274c ${output.padEnd(30)} — generated file missing! Run: bun run gen:skill-docs`);
+    console.log(
+      `  \u274c ${output.padEnd(30)} — generated file missing! Run: bun run gen:skill-docs`
+    );
     continue;
   }
   console.log(`  \u2705 ${tmpl.padEnd(30)} \u2192 ${output}`);
@@ -91,8 +99,10 @@ for (const { tmpl, output } of TEMPLATES) {
 // Skills without templates
 for (const file of SKILL_FILES) {
   const tmplPath = path.join(ROOT, file + '.tmpl');
-  if (!fs.existsSync(tmplPath) && !TEMPLATES.some(t => t.output === file)) {
-    console.log(`  \u26a0\ufe0f  ${file.padEnd(30)} — no template (OK if no $B commands)`);
+  if (!fs.existsSync(tmplPath) && !TEMPLATES.some((t) => t.output === file)) {
+    console.log(
+      `  \u26a0\ufe0f  ${file.padEnd(30)} — no template (OK if no $B commands)`
+    );
   }
 }
 
@@ -113,7 +123,9 @@ if (fs.existsSync(AGENTS_DIR)) {
       const hasClaude = content.includes('.claude/skills');
       if (hasClaude) {
         hasErrors = true;
-        console.log(`  \u274c ${dir.padEnd(30)} — contains .claude/skills reference`);
+        console.log(
+          `  \u274c ${dir.padEnd(30)} — contains .claude/skills reference`
+        );
       } else {
         console.log(`  \u2705 ${dir.padEnd(30)} — OK`);
       }
@@ -125,20 +137,27 @@ if (fs.existsSync(AGENTS_DIR)) {
   }
   console.log(`  Total: ${codexCount} skills, ${codexMissing} missing`);
 } else {
-  console.log('\n  Codex Skills: .agents/skills/ not found (run: bun run gen:skill-docs --host codex)');
+  console.log(
+    '\n  Codex Skills: .agents/skills/ not found (run: bun run gen:skill-docs --host codex)'
+  );
 }
 
 // ─── Freshness ──────────────────────────────────────────────
 
 console.log('\n  Freshness (Claude):');
 try {
-  execSync('bun run scripts/gen-skill-docs.ts --dry-run', { cwd: ROOT, stdio: 'pipe' });
+  execSync('bun run scripts/gen-skill-docs.ts --dry-run', {
+    cwd: ROOT,
+    stdio: 'pipe',
+  });
   console.log('  \u2705 All Claude generated files are fresh');
 } catch (err: any) {
   hasErrors = true;
   const output = err.stdout?.toString() || '';
   console.log('  \u274c Claude generated files are stale:');
-  for (const line of output.split('\n').filter((l: string) => l.startsWith('STALE'))) {
+  for (const line of output
+    .split('\n')
+    .filter((l: string) => l.startsWith('STALE'))) {
     console.log(`      ${line}`);
   }
   console.log('      Run: bun run gen:skill-docs');
@@ -146,13 +165,18 @@ try {
 
 console.log('\n  Freshness (Codex):');
 try {
-  execSync('bun run scripts/gen-skill-docs.ts --host codex --dry-run', { cwd: ROOT, stdio: 'pipe' });
+  execSync('bun run scripts/gen-skill-docs.ts --host codex --dry-run', {
+    cwd: ROOT,
+    stdio: 'pipe',
+  });
   console.log('  \u2705 All Codex generated files are fresh');
 } catch (err: any) {
   hasErrors = true;
   const output = err.stdout?.toString() || '';
   console.log('  \u274c Codex generated files are stale:');
-  for (const line of output.split('\n').filter((l: string) => l.startsWith('STALE'))) {
+  for (const line of output
+    .split('\n')
+    .filter((l: string) => l.startsWith('STALE'))) {
     console.log(`      ${line}`);
   }
   console.log('      Run: bun run gen:skill-docs --host codex');

@@ -5,7 +5,8 @@
  * Verifies that all routes return valid JSON (not HTML) with correct CORS headers.
  */
 
-import { describe, test, expect } from 'bun:test';
+import { describe, expect, test } from 'bun:test';
+
 import { handleCookiePickerRoute } from '../src/cookie-picker-routes';
 
 // ─── Mock BrowserManager ──────────────────────────────────────
@@ -17,8 +18,12 @@ function mockBrowserManager() {
     bm: {
       getPage: () => ({
         context: () => ({
-          addCookies: (cookies: any[]) => { addedCookies.push(...cookies); },
-          clearCookies: (opts: { domain: string }) => { clearedDomains.push(opts.domain); },
+          addCookies: (cookies: any[]) => {
+            addedCookies.push(...cookies);
+          },
+          clearCookies: (opts: { domain: string }) => {
+            clearedDomains.push(opts.domain);
+          },
         }),
       }),
     } as any,
@@ -52,7 +57,9 @@ describe('cookie-picker-routes', () => {
       const res = await handleCookiePickerRoute(url, req, bm);
 
       expect(res.status).toBe(204);
-      expect(res.headers.get('Access-Control-Allow-Origin')).toBe('http://127.0.0.1:9470');
+      expect(res.headers.get('Access-Control-Allow-Origin')).toBe(
+        'http://127.0.0.1:9470'
+      );
       expect(res.headers.get('Access-Control-Allow-Methods')).toContain('POST');
     });
 
@@ -63,7 +70,9 @@ describe('cookie-picker-routes', () => {
 
       const res = await handleCookiePickerRoute(url, req, bm);
 
-      expect(res.headers.get('Access-Control-Allow-Origin')).toBe('http://127.0.0.1:9450');
+      expect(res.headers.get('Access-Control-Allow-Origin')).toBe(
+        'http://127.0.0.1:9450'
+      );
     });
   });
 

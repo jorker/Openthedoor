@@ -31,8 +31,6 @@ build
 !src/**/*.d.ts
 
 # Public assets
-public
-
 # Config files that shouldn't be formatted
 .prettierrc
 .prettierrc.*
@@ -45,16 +43,4 @@ prettier.config.*
 # Other
 coverage
 .DS_Store
-
-src/shared/components
-
-# Vendored agent/assistant tooling and worktrees are not part of the product codebase.
-.agents
-.claude
-.codex
-.gstack
 .worktrees
-
-# Protected files we are explicitly not allowed to edit in this task.
-AGENTS.md
-CLAUDE.md

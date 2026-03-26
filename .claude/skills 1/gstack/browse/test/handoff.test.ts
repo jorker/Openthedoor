@@ -5,11 +5,12 @@
  * Integration tests cover the full handoff flow with real Playwright browsers.
  */
 
-import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
-import { startTestServer } from './test-server';
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+
 import { BrowserManager, type BrowserState } from '../src/browser-manager';
-import { handleWriteCommand } from '../src/write-commands';
 import { handleMetaCommand } from '../src/meta-commands';
+import { handleWriteCommand } from '../src/write-commands';
+import { startTestServer } from './test-server';
 
 let testServer: ReturnType<typeof startTestServer>;
 let bm: BrowserManager;
@@ -24,7 +25,9 @@ beforeAll(async () => {
 });
 
 afterAll(() => {
-  try { testServer.server.stop(); } catch {}
+  try {
+    testServer.server.stop();
+  } catch {}
   setTimeout(() => process.exit(0), 500);
 });
 
@@ -84,9 +87,9 @@ describe('saveState', () => {
     const state = await bm.saveState();
 
     expect(state.cookies.length).toBeGreaterThan(0);
-    expect(state.cookies.some(c => c.name === 'testcookie')).toBe(true);
+    expect(state.cookies.some((c) => c.name === 'testcookie')).toBe(true);
     expect(state.pages.length).toBeGreaterThanOrEqual(1);
-    expect(state.pages.some(p => p.url.includes('/basic.html'))).toBe(true);
+    expect(state.pages.some((p) => p.url.includes('/basic.html'))).toBe(true);
   }, 15000);
 
   test('captures localStorage and sessionStorage', async () => {
@@ -98,12 +101,18 @@ describe('saveState', () => {
     });
 
     const state = await bm.saveState();
-    const activePage = state.pages.find(p => p.isActive);
+    const activePage = state.pages.find((p) => p.isActive);
 
     expect(activePage).toBeDefined();
     expect(activePage!.storage).not.toBeNull();
-    expect(activePage!.storage!.localStorage).toHaveProperty('lsKey', 'lsValue');
-    expect(activePage!.storage!.sessionStorage).toHaveProperty('ssKey', 'ssValue');
+    expect(activePage!.storage!.localStorage).toHaveProperty(
+      'lsKey',
+      'lsValue'
+    );
+    expect(activePage!.storage!.sessionStorage).toHaveProperty(
+      'ssKey',
+      'ssValue'
+    );
   }, 15000);
 
   test('captures multiple tabs', async () => {
@@ -115,7 +124,7 @@ describe('saveState', () => {
 
     const state = await bm.saveState();
     expect(state.pages.length).toBe(2);
-    const activePage = state.pages.find(p => p.isActive);
+    const activePage = state.pages.find((p) => p.isActive);
     expect(activePage).toBeDefined();
     expect(activePage!.url).toContain('/form.html');
 
@@ -129,12 +138,12 @@ describe('restoreState', () => {
     await handleWriteCommand('cookie', ['restored=yes'], bm);
 
     const stateBefore = await bm.saveState();
-    expect(stateBefore.cookies.some(c => c.name === 'restored')).toBe(true);
+    expect(stateBefore.cookies.some((c) => c.name === 'restored')).toBe(true);
 
     await bm.recreateContext();
 
     const stateAfter = await bm.saveState();
-    expect(stateAfter.cookies.some(c => c.name === 'restored')).toBe(true);
+    expect(stateAfter.cookies.some((c) => c.name === 'restored')).toBe(true);
     expect(stateAfter.pages.length).toBeGreaterThanOrEqual(1);
   }, 30000);
 });
@@ -209,7 +218,12 @@ describe('handoff integration', () => {
 
     try {
       await handleWriteCommand('goto', [baseUrl + '/basic.html'], hbm);
-      await handleMetaCommand('newtab', [baseUrl + '/form.html'], hbm, () => {});
+      await handleMetaCommand(
+        'newtab',
+        [baseUrl + '/form.html'],
+        hbm,
+        () => {}
+      );
       expect(hbm.getTabCount()).toBe(2);
 
       await hbm.handoff('multi-tab test');
@@ -226,7 +240,12 @@ describe('handoff integration', () => {
 
     try {
       await handleWriteCommand('goto', [baseUrl + '/basic.html'], hbm);
-      const result = await handleMetaCommand('handoff', ['CAPTCHA', 'stuck'], hbm, () => {});
+      const result = await handleMetaCommand(
+        'handoff',
+        ['CAPTCHA', 'stuck'],
+        hbm,
+        () => {}
+      );
       expect(result).toContain('CAPTCHA stuck');
     } finally {
       await hbm.close();

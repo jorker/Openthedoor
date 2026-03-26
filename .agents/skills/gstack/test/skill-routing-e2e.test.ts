@@ -1,13 +1,18 @@
-import { describe, test, expect, afterAll } from 'bun:test';
-import { runSkillTest } from './helpers/session-runner';
-import type { SkillTestResult } from './helpers/session-runner';
-import { EvalCollector } from './helpers/eval-store';
-import type { EvalTestEntry } from './helpers/eval-store';
-import { selectTests, detectBaseBranch, getChangedFiles, E2E_TOUCHFILES, GLOBAL_TOUCHFILES } from './helpers/touchfiles';
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
-import * as path from 'path';
 import * as os from 'os';
+import * as path from 'path';
+import { afterAll, describe, expect, test } from 'bun:test';
+
+import { EvalCollector, type EvalTestEntry } from './helpers/eval-store';
+import { runSkillTest, type SkillTestResult } from './helpers/session-runner';
+import {
+  detectBaseBranch,
+  E2E_TOUCHFILES,
+  getChangedFiles,
+  GLOBAL_TOUCHFILES,
+  selectTests,
+} from './helpers/touchfiles';
 
 const ROOT = path.resolve(import.meta.dir, '..');
 
@@ -19,22 +24,30 @@ const describeE2E = evalsEnabled ? describe : describe.skip;
 const evalCollector = evalsEnabled ? new EvalCollector('e2e-routing') : null;
 
 // Unique run ID for this session
-const runId = new Date().toISOString().replace(/[:.]/g, '').replace('T', '-').slice(0, 15);
+const runId = new Date()
+  .toISOString()
+  .replace(/[:.]/g, '')
+  .replace('T', '-')
+  .slice(0, 15);
 
 // --- Diff-based test selection ---
 // Journey routing tests use E2E_TOUCHFILES (entries prefixed 'journey-' in touchfiles.ts).
 let selectedTests: string[] | null = null;
 
 if (evalsEnabled && !process.env.EVALS_ALL) {
-  const baseBranch = process.env.EVALS_BASE
-    || detectBaseBranch(ROOT)
-    || 'main';
+  const baseBranch = process.env.EVALS_BASE || detectBaseBranch(ROOT) || 'main';
   const changedFiles = getChangedFiles(baseBranch, ROOT);
 
   if (changedFiles.length > 0) {
-    const selection = selectTests(changedFiles, E2E_TOUCHFILES, GLOBAL_TOUCHFILES);
+    const selection = selectTests(
+      changedFiles,
+      E2E_TOUCHFILES,
+      GLOBAL_TOUCHFILES
+    );
     selectedTests = selection.selected;
-    process.stderr.write(`\nRouting E2E selection (${selection.reason}): ${selection.selected.length}/${Object.keys(E2E_TOUCHFILES).length} tests\n`);
+    process.stderr.write(
+      `\nRouting E2E selection (${selection.reason}): ${selection.selected.length}/${Object.keys(E2E_TOUCHFILES).length} tests\n`
+    );
     if (selection.skipped.length > 0) {
       process.stderr.write(`  Skipped: ${selection.skipped.join(', ')}\n`);
     }
@@ -48,10 +61,23 @@ if (evalsEnabled && !process.env.EVALS_ALL) {
 function installSkills(tmpDir: string) {
   const skillDirs = [
     '', // root gstack SKILL.md
-    'qa', 'qa-only', 'ship', 'review', 'plan-ceo-review', 'plan-eng-review',
-    'plan-design-review', 'design-review', 'design-consultation', 'retro',
-    'document-release', 'investigate', 'office-hours', 'browse', 'setup-browser-cookies',
-    'gstack-upgrade', 'humanizer',
+    'qa',
+    'qa-only',
+    'ship',
+    'review',
+    'plan-ceo-review',
+    'plan-eng-review',
+    'plan-design-review',
+    'design-review',
+    'design-consultation',
+    'retro',
+    'document-release',
+    'investigate',
+    'office-hours',
+    'browse',
+    'setup-browser-cookies',
+    'gstack-upgrade',
+    'humanizer',
   ];
 
   for (const skill of skillDirs) {
@@ -75,13 +101,30 @@ function initGitRepo(dir: string) {
   run('git', ['config', 'user.name', 'Test']);
 }
 
-function logCost(label: string, result: { costEstimate: { turnsUsed: number; estimatedTokens: number; estimatedCost: number }; duration: number }) {
+function logCost(
+  label: string,
+  result: {
+    costEstimate: {
+      turnsUsed: number;
+      estimatedTokens: number;
+      estimatedCost: number;
+    };
+    duration: number;
+  }
+) {
   const { turnsUsed, estimatedTokens, estimatedCost } = result.costEstimate;
   const durationSec = Math.round(result.duration / 1000);
-  console.log(`${label}: $${estimatedCost.toFixed(2)} (${turnsUsed} turns, ${(estimatedTokens / 1000).toFixed(1)}k tokens, ${durationSec}s)`);
+  console.log(
+    `${label}: $${estimatedCost.toFixed(2)} (${turnsUsed} turns, ${(estimatedTokens / 1000).toFixed(1)}k tokens, ${durationSec}s)`
+  );
 }
 
-function recordRouting(name: string, result: SkillTestResult, expectedSkill: string, actualSkill: string | undefined) {
+function recordRouting(
+  name: string,
+  result: SkillTestResult,
+  expectedSkill: string,
+  actualSkill: string | undefined
+) {
   evalCollector?.addTest({
     name,
     suite: 'Skill Routing E2E',
@@ -109,13 +152,22 @@ describeE2E('Skill Routing E2E — Developer Journey', () => {
       initGitRepo(tmpDir);
       installSkills(tmpDir);
       fs.writeFileSync(path.join(tmpDir, 'README.md'), '# New Project\n');
-      spawnSync('git', ['add', '.'], { cwd: tmpDir, stdio: 'pipe', timeout: 5000 });
-      spawnSync('git', ['commit', '-m', 'initial'], { cwd: tmpDir, stdio: 'pipe', timeout: 5000 });
+      spawnSync('git', ['add', '.'], {
+        cwd: tmpDir,
+        stdio: 'pipe',
+        timeout: 5000,
+      });
+      spawnSync('git', ['commit', '-m', 'initial'], {
+        cwd: tmpDir,
+        stdio: 'pipe',
+        timeout: 5000,
+      });
 
       const testName = 'journey-ideation';
       const expectedSkill = 'office-hours';
       const result = await runSkillTest({
-        prompt: "I've been thinking about building a waitlist management tool for restaurants. The existing solutions are expensive and overcomplicated. I want something simple — a tablet app where hosts can add parties, see wait times, and text customers when their table is ready. Help me think through whether this is worth building and what the key design decisions are.",
+        prompt:
+          "I've been thinking about building a waitlist management tool for restaurants. The existing solutions are expensive and overcomplicated. I want something simple — a tablet app where hosts can add parties, see wait times, and text customers when their table is ready. Help me think through whether this is worth building and what the key design decisions are.",
         workingDirectory: tmpDir,
         maxTurns: 5,
         allowedTools: ['Skill', 'Read', 'Bash', 'Glob', 'Grep'],
@@ -124,14 +176,21 @@ describeE2E('Skill Routing E2E — Developer Journey', () => {
         runId,
       });
 
-      const skillCalls = result.toolCalls.filter(tc => tc.tool === 'Skill');
-      const actualSkill = skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
+      const skillCalls = result.toolCalls.filter((tc) => tc.tool === 'Skill');
+      const actualSkill =
+        skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
 
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
-      expect([expectedSkill], `Expected skill ${expectedSkill} but got ${actualSkill}`).toContain(actualSkill);
+      expect(
+        skillCalls.length,
+        `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map((tc) => tc.tool).join(', ')}`
+      ).toBeGreaterThan(0);
+      expect(
+        [expectedSkill],
+        `Expected skill ${expectedSkill} but got ${actualSkill}`
+      ).toContain(actualSkill);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -142,7 +201,9 @@ describeE2E('Skill Routing E2E — Developer Journey', () => {
     try {
       initGitRepo(tmpDir);
       installSkills(tmpDir);
-      fs.writeFileSync(path.join(tmpDir, 'plan.md'), `# Waitlist App Architecture
+      fs.writeFileSync(
+        path.join(tmpDir, 'plan.md'),
+        `# Waitlist App Architecture
 
 ## Components
 - REST API (Express.js)
@@ -160,14 +221,24 @@ describeE2E('Skill Routing E2E — Developer Journey', () => {
 - GET /api/parties - list current waitlist
 - PATCH /api/parties/:id/status - update party status
 - GET /api/estimate - get current wait estimate
-`);
-      spawnSync('git', ['add', '.'], { cwd: tmpDir, stdio: 'pipe', timeout: 5000 });
-      spawnSync('git', ['commit', '-m', 'initial'], { cwd: tmpDir, stdio: 'pipe', timeout: 5000 });
+`
+      );
+      spawnSync('git', ['add', '.'], {
+        cwd: tmpDir,
+        stdio: 'pipe',
+        timeout: 5000,
+      });
+      spawnSync('git', ['commit', '-m', 'initial'], {
+        cwd: tmpDir,
+        stdio: 'pipe',
+        timeout: 5000,
+      });
 
       const testName = 'journey-plan-eng';
       const expectedSkill = 'plan-eng-review';
       const result = await runSkillTest({
-        prompt: "I wrote up a plan for the waitlist app in plan.md. Can you take a look at the architecture and make sure I'm not missing any edge cases or failure modes before I start coding?",
+        prompt:
+          "I wrote up a plan for the waitlist app in plan.md. Can you take a look at the architecture and make sure I'm not missing any edge cases or failure modes before I start coding?",
         workingDirectory: tmpDir,
         maxTurns: 5,
         allowedTools: ['Skill', 'Read', 'Bash', 'Glob', 'Grep'],
@@ -176,25 +247,36 @@ describeE2E('Skill Routing E2E — Developer Journey', () => {
         runId,
       });
 
-      const skillCalls = result.toolCalls.filter(tc => tc.tool === 'Skill');
-      const actualSkill = skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
+      const skillCalls = result.toolCalls.filter((tc) => tc.tool === 'Skill');
+      const actualSkill =
+        skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
 
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
-      expect([expectedSkill], `Expected skill ${expectedSkill} but got ${actualSkill}`).toContain(actualSkill);
+      expect(
+        skillCalls.length,
+        `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map((tc) => tc.tool).join(', ')}`
+      ).toBeGreaterThan(0);
+      expect(
+        [expectedSkill],
+        `Expected skill ${expectedSkill} but got ${actualSkill}`
+      ).toContain(actualSkill);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
   }, 90_000);
 
   test('journey-think-bigger', async () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'routing-think-bigger-'));
+    const tmpDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'routing-think-bigger-')
+    );
     try {
       initGitRepo(tmpDir);
       installSkills(tmpDir);
-      fs.writeFileSync(path.join(tmpDir, 'plan.md'), `# Waitlist App Architecture
+      fs.writeFileSync(
+        path.join(tmpDir, 'plan.md'),
+        `# Waitlist App Architecture
 
 ## Components
 - REST API (Express.js)
@@ -212,14 +294,24 @@ describeE2E('Skill Routing E2E — Developer Journey', () => {
 - GET /api/parties - list current waitlist
 - PATCH /api/parties/:id/status - update party status
 - GET /api/estimate - get current wait estimate
-`);
-      spawnSync('git', ['add', '.'], { cwd: tmpDir, stdio: 'pipe', timeout: 5000 });
-      spawnSync('git', ['commit', '-m', 'initial'], { cwd: tmpDir, stdio: 'pipe', timeout: 5000 });
+`
+      );
+      spawnSync('git', ['add', '.'], {
+        cwd: tmpDir,
+        stdio: 'pipe',
+        timeout: 5000,
+      });
+      spawnSync('git', ['commit', '-m', 'initial'], {
+        cwd: tmpDir,
+        stdio: 'pipe',
+        timeout: 5000,
+      });
 
       const testName = 'journey-think-bigger';
       const expectedSkill = 'plan-ceo-review';
       const result = await runSkillTest({
-        prompt: "Actually, looking at this plan again, I feel like we're thinking too small. We're just doing waitlists but what about the whole restaurant guest experience? Is there a bigger opportunity here we should go after?",
+        prompt:
+          "Actually, looking at this plan again, I feel like we're thinking too small. We're just doing waitlists but what about the whole restaurant guest experience? Is there a bigger opportunity here we should go after?",
         workingDirectory: tmpDir,
         maxTurns: 5,
         allowedTools: ['Skill', 'Read', 'Bash', 'Glob', 'Grep'],
@@ -228,14 +320,21 @@ describeE2E('Skill Routing E2E — Developer Journey', () => {
         runId,
       });
 
-      const skillCalls = result.toolCalls.filter(tc => tc.tool === 'Skill');
-      const actualSkill = skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
+      const skillCalls = result.toolCalls.filter((tc) => tc.tool === 'Skill');
+      const actualSkill =
+        skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
 
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
-      expect([expectedSkill], `Expected skill ${expectedSkill} but got ${actualSkill}`).toContain(actualSkill);
+      expect(
+        skillCalls.length,
+        `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map((tc) => tc.tool).join(', ')}`
+      ).toBeGreaterThan(0);
+      expect(
+        [expectedSkill],
+        `Expected skill ${expectedSkill} but got ${actualSkill}`
+      ).toContain(actualSkill);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -251,7 +350,9 @@ describeE2E('Skill Routing E2E — Developer Journey', () => {
         spawnSync(cmd, args, { cwd: tmpDir, stdio: 'pipe', timeout: 5000 });
 
       fs.mkdirSync(path.join(tmpDir, 'src'), { recursive: true });
-      fs.writeFileSync(path.join(tmpDir, 'src/api.ts'), `
+      fs.writeFileSync(
+        path.join(tmpDir, 'src/api.ts'),
+        `
 import express from 'express';
 const app = express();
 
@@ -262,15 +363,19 @@ app.get('/api/waitlist', async (req, res) => {
 });
 
 export default app;
-`);
-      fs.writeFileSync(path.join(tmpDir, 'error.log'), `
+`
+      );
+      fs.writeFileSync(
+        path.join(tmpDir, 'error.log'),
+        `
 [2026-03-18T10:23:45Z] ERROR: GET /api/waitlist - 500 Internal Server Error
   TypeError: Cannot read properties of undefined (reading 'query')
     at /src/api.ts:5:32
     at Layer.handle [as handle_request] (/node_modules/express/lib/router/layer.js:95:5)
 [2026-03-18T10:23:46Z] ERROR: GET /api/waitlist - 500 Internal Server Error
   TypeError: Cannot read properties of undefined (reading 'query')
-`);
+`
+      );
 
       run('git', ['add', '.']);
       run('git', ['commit', '-m', 'initial']);
@@ -279,7 +384,8 @@ export default app;
       const testName = 'journey-debug';
       const expectedSkill = 'investigate';
       const result = await runSkillTest({
-        prompt: "The GET /api/waitlist endpoint was working fine yesterday but now it's returning 500 errors. The tests are passing locally but the endpoint fails when I hit it with curl. Can you figure out what's going on?",
+        prompt:
+          "The GET /api/waitlist endpoint was working fine yesterday but now it's returning 500 errors. The tests are passing locally but the endpoint fails when I hit it with curl. Can you figure out what's going on?",
         workingDirectory: tmpDir,
         maxTurns: 5,
         allowedTools: ['Skill', 'Read', 'Bash', 'Glob', 'Grep'],
@@ -288,14 +394,21 @@ export default app;
         runId,
       });
 
-      const skillCalls = result.toolCalls.filter(tc => tc.tool === 'Skill');
-      const actualSkill = skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
+      const skillCalls = result.toolCalls.filter((tc) => tc.tool === 'Skill');
+      const actualSkill =
+        skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
 
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
-      expect([expectedSkill], `Expected skill ${expectedSkill} but got ${actualSkill}`).toContain(actualSkill);
+      expect(
+        skillCalls.length,
+        `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map((tc) => tc.tool).join(', ')}`
+      ).toBeGreaterThan(0);
+      expect(
+        [expectedSkill],
+        `Expected skill ${expectedSkill} but got ${actualSkill}`
+      ).toContain(actualSkill);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -307,17 +420,36 @@ export default app;
       initGitRepo(tmpDir);
       installSkills(tmpDir);
 
-      fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({ name: 'waitlist-app', scripts: { dev: 'next dev' } }, null, 2));
+      fs.writeFileSync(
+        path.join(tmpDir, 'package.json'),
+        JSON.stringify(
+          { name: 'waitlist-app', scripts: { dev: 'next dev' } },
+          null,
+          2
+        )
+      );
       fs.mkdirSync(path.join(tmpDir, 'src'), { recursive: true });
-      fs.writeFileSync(path.join(tmpDir, 'src/index.html'), '<html><body><h1>Waitlist App</h1></body></html>');
-      spawnSync('git', ['add', '.'], { cwd: tmpDir, stdio: 'pipe', timeout: 5000 });
-      spawnSync('git', ['commit', '-m', 'initial'], { cwd: tmpDir, stdio: 'pipe', timeout: 5000 });
+      fs.writeFileSync(
+        path.join(tmpDir, 'src/index.html'),
+        '<html><body><h1>Waitlist App</h1></body></html>'
+      );
+      spawnSync('git', ['add', '.'], {
+        cwd: tmpDir,
+        stdio: 'pipe',
+        timeout: 5000,
+      });
+      spawnSync('git', ['commit', '-m', 'initial'], {
+        cwd: tmpDir,
+        stdio: 'pipe',
+        timeout: 5000,
+      });
 
       const testName = 'journey-qa';
       const expectedSkill = 'qa';
       const alternateSkills = ['qa-only', 'browse'];
       const result = await runSkillTest({
-        prompt: "I think the app is mostly working now. Can you go through the site and test everything — find any bugs and fix them?",
+        prompt:
+          'I think the app is mostly working now. Can you go through the site and test everything — find any bugs and fix them?',
         workingDirectory: tmpDir,
         maxTurns: 5,
         allowedTools: ['Skill', 'Read', 'Bash', 'Glob', 'Grep'],
@@ -326,22 +458,31 @@ export default app;
         runId,
       });
 
-      const skillCalls = result.toolCalls.filter(tc => tc.tool === 'Skill');
-      const actualSkill = skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
+      const skillCalls = result.toolCalls.filter((tc) => tc.tool === 'Skill');
+      const actualSkill =
+        skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
       const acceptable = [expectedSkill, ...alternateSkills];
 
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
-      expect(acceptable, `Expected skill ${expectedSkill} but got ${actualSkill}`).toContain(actualSkill);
+      expect(
+        skillCalls.length,
+        `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map((tc) => tc.tool).join(', ')}`
+      ).toBeGreaterThan(0);
+      expect(
+        acceptable,
+        `Expected skill ${expectedSkill} but got ${actualSkill}`
+      ).toContain(actualSkill);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
   }, 90_000);
 
   test('journey-code-review', async () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'routing-code-review-'));
+    const tmpDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'routing-code-review-')
+    );
     try {
       initGitRepo(tmpDir);
       installSkills(tmpDir);
@@ -353,15 +494,22 @@ export default app;
       run('git', ['add', '.']);
       run('git', ['commit', '-m', 'initial']);
       run('git', ['checkout', '-b', 'feature/add-waitlist']);
-      fs.writeFileSync(path.join(tmpDir, 'app.ts'), '// updated with waitlist feature\nimport { WaitlistService } from "./waitlist";\n');
-      fs.writeFileSync(path.join(tmpDir, 'waitlist.ts'), 'export class WaitlistService {\n  async addParty(name: string, size: number) {\n    // TODO: implement\n  }\n}\n');
+      fs.writeFileSync(
+        path.join(tmpDir, 'app.ts'),
+        '// updated with waitlist feature\nimport { WaitlistService } from "./waitlist";\n'
+      );
+      fs.writeFileSync(
+        path.join(tmpDir, 'waitlist.ts'),
+        'export class WaitlistService {\n  async addParty(name: string, size: number) {\n    // TODO: implement\n  }\n}\n'
+      );
       run('git', ['add', '.']);
       run('git', ['commit', '-m', 'feat: add waitlist service']);
 
       const testName = 'journey-code-review';
       const expectedSkill = 'review';
       const result = await runSkillTest({
-        prompt: "I'm about to merge this into main. Can you look over my changes and flag anything risky before I land it?",
+        prompt:
+          "I'm about to merge this into main. Can you look over my changes and flag anything risky before I land it?",
         workingDirectory: tmpDir,
         maxTurns: 5,
         allowedTools: ['Skill', 'Read', 'Bash', 'Glob', 'Grep'],
@@ -370,14 +518,21 @@ export default app;
         runId,
       });
 
-      const skillCalls = result.toolCalls.filter(tc => tc.tool === 'Skill');
-      const actualSkill = skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
+      const skillCalls = result.toolCalls.filter((tc) => tc.tool === 'Skill');
+      const actualSkill =
+        skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
 
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
-      expect([expectedSkill], `Expected skill ${expectedSkill} but got ${actualSkill}`).toContain(actualSkill);
+      expect(
+        skillCalls.length,
+        `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map((tc) => tc.tool).join(', ')}`
+      ).toBeGreaterThan(0);
+      expect(
+        [expectedSkill],
+        `Expected skill ${expectedSkill} but got ${actualSkill}`
+      ).toContain(actualSkill);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -403,7 +558,8 @@ export default app;
       const testName = 'journey-ship';
       const expectedSkill = 'ship';
       const result = await runSkillTest({
-        prompt: "This looks good. Let's get it deployed — push the code up and create a PR.",
+        prompt:
+          "This looks good. Let's get it deployed — push the code up and create a PR.",
         workingDirectory: tmpDir,
         maxTurns: 5,
         allowedTools: ['Skill', 'Read', 'Bash', 'Glob', 'Grep'],
@@ -412,14 +568,21 @@ export default app;
         runId,
       });
 
-      const skillCalls = result.toolCalls.filter(tc => tc.tool === 'Skill');
-      const actualSkill = skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
+      const skillCalls = result.toolCalls.filter((tc) => tc.tool === 'Skill');
+      const actualSkill =
+        skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
 
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
-      expect([expectedSkill], `Expected skill ${expectedSkill} but got ${actualSkill}`).toContain(actualSkill);
+      expect(
+        skillCalls.length,
+        `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map((tc) => tc.tool).join(', ')}`
+      ).toBeGreaterThan(0);
+      expect(
+        [expectedSkill],
+        `Expected skill ${expectedSkill} but got ${actualSkill}`
+      ).toContain(actualSkill);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -434,7 +597,10 @@ export default app;
       const run = (cmd: string, args: string[]) =>
         spawnSync(cmd, args, { cwd: tmpDir, stdio: 'pipe', timeout: 5000 });
 
-      fs.writeFileSync(path.join(tmpDir, 'README.md'), '# Waitlist App\nA simple waitlist management tool.\n');
+      fs.writeFileSync(
+        path.join(tmpDir, 'README.md'),
+        '# Waitlist App\nA simple waitlist management tool.\n'
+      );
       fs.mkdirSync(path.join(tmpDir, 'src'), { recursive: true });
       fs.writeFileSync(path.join(tmpDir, 'src/api.ts'), '// API code\n');
       run('git', ['add', '.']);
@@ -443,7 +609,8 @@ export default app;
       const testName = 'journey-docs';
       const expectedSkill = 'document-release';
       const result = await runSkillTest({
-        prompt: "We just shipped the waitlist feature. Can you go through the README and any other docs and make sure they match what we actually built?",
+        prompt:
+          'We just shipped the waitlist feature. Can you go through the README and any other docs and make sure they match what we actually built?',
         workingDirectory: tmpDir,
         maxTurns: 5,
         allowedTools: ['Skill', 'Read', 'Bash', 'Glob', 'Grep'],
@@ -452,14 +619,21 @@ export default app;
         runId,
       });
 
-      const skillCalls = result.toolCalls.filter(tc => tc.tool === 'Skill');
-      const actualSkill = skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
+      const skillCalls = result.toolCalls.filter((tc) => tc.tool === 'Skill');
+      const actualSkill =
+        skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
 
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
-      expect([expectedSkill], `Expected skill ${expectedSkill} but got ${actualSkill}`).toContain(actualSkill);
+      expect(
+        skillCalls.length,
+        `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map((tc) => tc.tool).join(', ')}`
+      ).toBeGreaterThan(0);
+      expect(
+        [expectedSkill],
+        `Expected skill ${expectedSkill} but got ${actualSkill}`
+      ).toContain(actualSkill);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -474,22 +648,47 @@ export default app;
       const run = (cmd: string, args: string[]) =>
         spawnSync(cmd, args, { cwd: tmpDir, stdio: 'pipe', timeout: 5000 });
 
-      fs.writeFileSync(path.join(tmpDir, 'api.ts'), 'export function getParties() { return []; }\n');
+      fs.writeFileSync(
+        path.join(tmpDir, 'api.ts'),
+        'export function getParties() { return []; }\n'
+      );
       run('git', ['add', '.']);
-      run('git', ['commit', '-m', 'feat: add parties API', '--date', '2026-03-12T09:30:00']);
+      run('git', [
+        'commit',
+        '-m',
+        'feat: add parties API',
+        '--date',
+        '2026-03-12T09:30:00',
+      ]);
 
-      fs.writeFileSync(path.join(tmpDir, 'ui.tsx'), 'export function WaitlistView() { return <div>Waitlist</div>; }\n');
+      fs.writeFileSync(
+        path.join(tmpDir, 'ui.tsx'),
+        'export function WaitlistView() { return <div>Waitlist</div>; }\n'
+      );
       run('git', ['add', '.']);
-      run('git', ['commit', '-m', 'feat: add waitlist UI', '--date', '2026-03-13T14:00:00']);
+      run('git', [
+        'commit',
+        '-m',
+        'feat: add waitlist UI',
+        '--date',
+        '2026-03-13T14:00:00',
+      ]);
 
       fs.writeFileSync(path.join(tmpDir, 'README.md'), '# Waitlist App\n');
       run('git', ['add', '.']);
-      run('git', ['commit', '-m', 'docs: add README', '--date', '2026-03-14T16:00:00']);
+      run('git', [
+        'commit',
+        '-m',
+        'docs: add README',
+        '--date',
+        '2026-03-14T16:00:00',
+      ]);
 
       const testName = 'journey-retro';
       const expectedSkill = 'retro';
       const result = await runSkillTest({
-        prompt: "It's Friday. What did we ship this week? I want to do a quick retrospective on what the team accomplished.",
+        prompt:
+          "It's Friday. What did we ship this week? I want to do a quick retrospective on what the team accomplished.",
         workingDirectory: tmpDir,
         maxTurns: 5,
         allowedTools: ['Skill', 'Read', 'Bash', 'Glob', 'Grep'],
@@ -498,21 +697,30 @@ export default app;
         runId,
       });
 
-      const skillCalls = result.toolCalls.filter(tc => tc.tool === 'Skill');
-      const actualSkill = skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
+      const skillCalls = result.toolCalls.filter((tc) => tc.tool === 'Skill');
+      const actualSkill =
+        skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
 
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
-      expect([expectedSkill], `Expected skill ${expectedSkill} but got ${actualSkill}`).toContain(actualSkill);
+      expect(
+        skillCalls.length,
+        `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map((tc) => tc.tool).join(', ')}`
+      ).toBeGreaterThan(0);
+      expect(
+        [expectedSkill],
+        `Expected skill ${expectedSkill} but got ${actualSkill}`
+      ).toContain(actualSkill);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
   }, 90_000);
 
   test('journey-design-system', async () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'routing-design-system-'));
+    const tmpDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'routing-design-system-')
+    );
     try {
       initGitRepo(tmpDir);
       installSkills(tmpDir);
@@ -520,14 +728,18 @@ export default app;
       const run = (cmd: string, args: string[]) =>
         spawnSync(cmd, args, { cwd: tmpDir, stdio: 'pipe', timeout: 5000 });
 
-      fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({ name: 'waitlist-app' }, null, 2));
+      fs.writeFileSync(
+        path.join(tmpDir, 'package.json'),
+        JSON.stringify({ name: 'waitlist-app' }, null, 2)
+      );
       run('git', ['add', '.']);
       run('git', ['commit', '-m', 'initial']);
 
       const testName = 'journey-design-system';
       const expectedSkill = 'design-consultation';
       const result = await runSkillTest({
-        prompt: "Before we build the UI, I want to establish a design system — typography, colors, spacing, the whole thing. Can you put together brand guidelines for this project?",
+        prompt:
+          'Before we build the UI, I want to establish a design system — typography, colors, spacing, the whole thing. Can you put together brand guidelines for this project?',
         workingDirectory: tmpDir,
         maxTurns: 5,
         allowedTools: ['Skill', 'Read', 'Bash', 'Glob', 'Grep'],
@@ -536,14 +748,21 @@ export default app;
         runId,
       });
 
-      const skillCalls = result.toolCalls.filter(tc => tc.tool === 'Skill');
-      const actualSkill = skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
+      const skillCalls = result.toolCalls.filter((tc) => tc.tool === 'Skill');
+      const actualSkill =
+        skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
 
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
-      expect([expectedSkill], `Expected skill ${expectedSkill} but got ${actualSkill}`).toContain(actualSkill);
+      expect(
+        skillCalls.length,
+        `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map((tc) => tc.tool).join(', ')}`
+      ).toBeGreaterThan(0);
+      expect(
+        [expectedSkill],
+        `Expected skill ${expectedSkill} but got ${actualSkill}`
+      ).toContain(actualSkill);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -559,13 +778,18 @@ export default app;
         spawnSync(cmd, args, { cwd: tmpDir, stdio: 'pipe', timeout: 5000 });
 
       fs.mkdirSync(path.join(tmpDir, 'src'), { recursive: true });
-      fs.writeFileSync(path.join(tmpDir, 'src/styles.css'), `
+      fs.writeFileSync(
+        path.join(tmpDir, 'src/styles.css'),
+        `
 body { font-family: sans-serif; }
 .header { font-size: 24px; margin: 20px; }
 .card { padding: 16px; margin: 8px; border: 1px solid #ccc; }
 .button { background: #007bff; color: white; padding: 10px 20px; }
-`);
-      fs.writeFileSync(path.join(tmpDir, 'src/index.html'), `
+`
+      );
+      fs.writeFileSync(
+        path.join(tmpDir, 'src/index.html'),
+        `
 <html>
 <head><link rel="stylesheet" href="styles.css"></head>
 <body>
@@ -574,14 +798,16 @@ body { font-family: sans-serif; }
   <div class="card">Party of 2 - Jones</div>
 </body>
 </html>
-`);
+`
+      );
       run('git', ['add', '.']);
       run('git', ['commit', '-m', 'initial UI']);
 
       const testName = 'journey-visual-qa';
       const expectedSkill = 'design-review';
       const result = await runSkillTest({
-        prompt: "Something looks off on the site. The spacing between sections is inconsistent and the font sizes don't feel right. Can you audit the visual design and fix anything that doesn't look polished?",
+        prompt:
+          "Something looks off on the site. The spacing between sections is inconsistent and the font sizes don't feel right. Can you audit the visual design and fix anything that doesn't look polished?",
         workingDirectory: tmpDir,
         maxTurns: 5,
         allowedTools: ['Skill', 'Read', 'Bash', 'Glob', 'Grep'],
@@ -590,14 +816,21 @@ body { font-family: sans-serif; }
         runId,
       });
 
-      const skillCalls = result.toolCalls.filter(tc => tc.tool === 'Skill');
-      const actualSkill = skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
+      const skillCalls = result.toolCalls.filter((tc) => tc.tool === 'Skill');
+      const actualSkill =
+        skillCalls.length > 0 ? skillCalls[0]?.input?.skill : undefined;
 
       logCost(`journey: ${testName}`, result);
       recordRouting(testName, result, expectedSkill, actualSkill);
 
-      expect(skillCalls.length, `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map(tc => tc.tool).join(', ')}`).toBeGreaterThan(0);
-      expect([expectedSkill], `Expected skill ${expectedSkill} but got ${actualSkill}`).toContain(actualSkill);
+      expect(
+        skillCalls.length,
+        `Expected Skill tool to be called but got 0 calls. Claude may have answered directly without invoking a skill. Tool calls: ${result.toolCalls.map((tc) => tc.tool).join(', ')}`
+      ).toBeGreaterThan(0);
+      expect(
+        [expectedSkill],
+        `Expected skill ${expectedSkill} but got ${actualSkill}`
+      ).toContain(actualSkill);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }

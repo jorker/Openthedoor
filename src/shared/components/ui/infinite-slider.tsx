@@ -1,15 +1,17 @@
-"use client";
-import { cn } from "@/shared/lib/utils";
-import { useMotionValue, animate, motion } from "motion/react";
-import { useState, useEffect } from "react";
-import useMeasure from "react-use-measure";
+'use client';
+
+import { useEffect, useState } from 'react';
+import { animate, motion, useMotionValue } from 'motion/react';
+import useMeasure from 'react-use-measure';
+
+import { cn } from '@/shared/lib/utils';
 
 export type InfiniteSliderProps = {
   children: React.ReactNode;
   gap?: number;
   speed?: number;
   speedOnHover?: number;
-  direction?: "horizontal" | "vertical";
+  direction?: 'horizontal' | 'vertical';
   reverse?: boolean;
   className?: string;
 };
@@ -19,7 +21,7 @@ export function InfiniteSlider({
   gap = 16,
   speed = 100,
   speedOnHover,
-  direction = "horizontal",
+  direction = 'horizontal',
   reverse = false,
   className,
 }: InfiniteSliderProps) {
@@ -31,7 +33,7 @@ export function InfiniteSlider({
 
   useEffect(() => {
     let controls;
-    const size = direction === "horizontal" ? width : height;
+    const size = direction === 'horizontal' ? width : height;
     const contentSize = size + gap;
     const from = reverse ? -contentSize / 2 : 0;
     const to = reverse ? 0 : -contentSize / 2;
@@ -44,7 +46,7 @@ export function InfiniteSlider({
       const transitionDuration = remainingDistance / currentSpeed;
 
       controls = animate(translation, [translation.get(), to], {
-        ease: "linear",
+        ease: 'linear',
         duration: transitionDuration,
         onComplete: () => {
           setIsTransitioning(false);
@@ -53,10 +55,10 @@ export function InfiniteSlider({
       });
     } else {
       controls = animate(translation, [from, to], {
-        ease: "linear",
+        ease: 'linear',
         duration: duration,
         repeat: Infinity,
-        repeatType: "loop",
+        repeatType: 'loop',
         repeatDelay: 0,
         onRepeat: () => {
           translation.set(from);
@@ -91,15 +93,15 @@ export function InfiniteSlider({
     : {};
 
   return (
-    <div className={cn("overflow-hidden", className)}>
+    <div className={cn('overflow-hidden', className)}>
       <motion.div
         className="flex w-max"
         style={{
-          ...(direction === "horizontal"
+          ...(direction === 'horizontal'
             ? { x: translation }
             : { y: translation }),
           gap: `${gap}px`,
-          flexDirection: direction === "horizontal" ? "row" : "column",
+          flexDirection: direction === 'horizontal' ? 'row' : 'column',
         }}
         ref={ref}
         {...hoverProps}

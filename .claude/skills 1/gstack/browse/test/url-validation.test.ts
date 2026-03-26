@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, expect, it } from 'bun:test';
+
 import { validateNavigationUrl } from '../src/url-validation';
 
 describe('validateNavigationUrl', () => {
@@ -7,7 +8,9 @@ describe('validateNavigationUrl', () => {
   });
 
   it('allows https URLs', () => {
-    expect(() => validateNavigationUrl('https://example.com/path?q=1')).not.toThrow();
+    expect(() =>
+      validateNavigationUrl('https://example.com/path?q=1')
+    ).not.toThrow();
   });
 
   it('allows localhost', () => {
@@ -23,43 +26,67 @@ describe('validateNavigationUrl', () => {
   });
 
   it('blocks file:// scheme', () => {
-    expect(() => validateNavigationUrl('file:///etc/passwd')).toThrow(/scheme.*not allowed/i);
+    expect(() => validateNavigationUrl('file:///etc/passwd')).toThrow(
+      /scheme.*not allowed/i
+    );
   });
 
   it('blocks javascript: scheme', () => {
-    expect(() => validateNavigationUrl('javascript:alert(1)')).toThrow(/scheme.*not allowed/i);
+    expect(() => validateNavigationUrl('javascript:alert(1)')).toThrow(
+      /scheme.*not allowed/i
+    );
   });
 
   it('blocks data: scheme', () => {
-    expect(() => validateNavigationUrl('data:text/html,<h1>hi</h1>')).toThrow(/scheme.*not allowed/i);
+    expect(() => validateNavigationUrl('data:text/html,<h1>hi</h1>')).toThrow(
+      /scheme.*not allowed/i
+    );
   });
 
   it('blocks AWS/GCP metadata endpoint', () => {
-    expect(() => validateNavigationUrl('http://169.254.169.254/latest/meta-data/')).toThrow(/cloud metadata/i);
+    expect(() =>
+      validateNavigationUrl('http://169.254.169.254/latest/meta-data/')
+    ).toThrow(/cloud metadata/i);
   });
 
   it('blocks GCP metadata hostname', () => {
-    expect(() => validateNavigationUrl('http://metadata.google.internal/computeMetadata/v1/')).toThrow(/cloud metadata/i);
+    expect(() =>
+      validateNavigationUrl(
+        'http://metadata.google.internal/computeMetadata/v1/'
+      )
+    ).toThrow(/cloud metadata/i);
   });
 
   it('blocks metadata hostname with trailing dot', () => {
-    expect(() => validateNavigationUrl('http://metadata.google.internal./computeMetadata/v1/')).toThrow(/cloud metadata/i);
+    expect(() =>
+      validateNavigationUrl(
+        'http://metadata.google.internal./computeMetadata/v1/'
+      )
+    ).toThrow(/cloud metadata/i);
   });
 
   it('blocks metadata IP in hex form', () => {
-    expect(() => validateNavigationUrl('http://0xA9FEA9FE/')).toThrow(/cloud metadata/i);
+    expect(() => validateNavigationUrl('http://0xA9FEA9FE/')).toThrow(
+      /cloud metadata/i
+    );
   });
 
   it('blocks metadata IP in decimal form', () => {
-    expect(() => validateNavigationUrl('http://2852039166/')).toThrow(/cloud metadata/i);
+    expect(() => validateNavigationUrl('http://2852039166/')).toThrow(
+      /cloud metadata/i
+    );
   });
 
   it('blocks metadata IP in octal form', () => {
-    expect(() => validateNavigationUrl('http://0251.0376.0251.0376/')).toThrow(/cloud metadata/i);
+    expect(() => validateNavigationUrl('http://0251.0376.0251.0376/')).toThrow(
+      /cloud metadata/i
+    );
   });
 
   it('blocks IPv6 metadata with brackets', () => {
-    expect(() => validateNavigationUrl('http://[fd00::]/')).toThrow(/cloud metadata/i);
+    expect(() => validateNavigationUrl('http://[fd00::]/')).toThrow(
+      /cloud metadata/i
+    );
   });
 
   it('throws on malformed URLs', () => {

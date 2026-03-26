@@ -30,8 +30,8 @@ jobs:
 
       - name: Prepare CI environment
         run: |
-          cp .env.example .env.development
-          printf '\nAUTH_SECRET="ci-auth-secret"\n' >> .env.development
+          cp .env.example .env.production
+          printf '\nAUTH_SECRET="ci-auth-secret"\n' >> .env.production
 
       - name: Run baseline checks
         run: pnpm check

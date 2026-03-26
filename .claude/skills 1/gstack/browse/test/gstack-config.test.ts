@@ -5,10 +5,16 @@
  * GSTACK_STATE_DIR env override for full isolation.
  */
 
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { mkdtempSync, writeFileSync, rmSync, readFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'fs';
 import { tmpdir } from 'os';
+import { join } from 'path';
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 
 const SCRIPT = join(import.meta.dir, '..', '..', 'bin', 'gstack-config');
 
@@ -96,14 +102,19 @@ describe('gstack-config', () => {
 
   test('set creates state dir if missing', () => {
     const nestedDir = join(stateDir, 'nested', 'dir');
-    const { exitCode } = run(['set', 'foo', 'bar'], { GSTACK_STATE_DIR: nestedDir });
+    const { exitCode } = run(['set', 'foo', 'bar'], {
+      GSTACK_STATE_DIR: nestedDir,
+    });
     expect(exitCode).toBe(0);
     expect(existsSync(join(nestedDir, 'config.yaml'))).toBe(true);
   });
 
   // ─── list ─────────────────────────────────────────────────
   test('list shows all keys', () => {
-    writeFileSync(join(stateDir, 'config.yaml'), 'auto_upgrade: true\nupdate_check: false\n');
+    writeFileSync(
+      join(stateDir, 'config.yaml'),
+      'auto_upgrade: true\nupdate_check: false\n'
+    );
     const { exitCode, stdout } = run(['list']);
     expect(exitCode).toBe(0);
     expect(stdout).toContain('auto_upgrade: true');

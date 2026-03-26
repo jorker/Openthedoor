@@ -5,15 +5,18 @@
  * console, network, cookies, storage, perf
  */
 
-import type { BrowserManager } from './browser-manager';
-import { consoleBuffer, networkBuffer, dialogBuffer } from './buffers';
-import type { Page } from 'playwright';
 import * as fs from 'fs';
 import * as path from 'path';
+import type { Page } from 'playwright';
+
+import type { BrowserManager } from './browser-manager';
+import { consoleBuffer, dialogBuffer, networkBuffer } from './buffers';
 
 /** Detect await keyword, ignoring comments. Accepted risk: await in string literals triggers wrapping (harmless). */
 function hasAwait(code: string): boolean {
-  const stripped = code.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+  const stripped = code
+    .replace(/\/\/.*$/gm, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '');
   return /\bawait\b/.test(stripped);
 }
 
@@ -21,7 +24,12 @@ function hasAwait(code: string): boolean {
 function needsBlockWrapper(code: string): boolean {
   const trimmed = code.trim();
   if (trimmed.split('\n').length > 1) return true;
-  if (/\b(const|let|var|function|class|return|throw|if|for|while|switch|try)\b/.test(trimmed)) return true;
+  if (
+    /\b(const|let|var|function|class|return|throw|if|for|while|switch|try)\b/.test(
+      trimmed
+    )
+  )
+    return true;
   if (trimmed.includes(';')) return true;
   return false;
 }
@@ -41,9 +49,13 @@ const SAFE_DIRECTORIES = ['/tmp', process.cwd()];
 export function validateReadPath(filePath: string): void {
   if (path.isAbsolute(filePath)) {
     const resolved = path.resolve(filePath);
-    const isSafe = SAFE_DIRECTORIES.some(dir => resolved === dir || resolved.startsWith(dir + '/'));
+    const isSafe = SAFE_DIRECTORIES.some(
+      (dir) => resolved === dir || resolved.startsWith(dir + '/')
+    );
     if (!isSafe) {
-      throw new Error(`Absolute path must be within: ${SAFE_DIRECTORIES.join(', ')}`);
+      throw new Error(
+        `Absolute path must be within: ${SAFE_DIRECTORIES.join(', ')}`
+      );
     }
   }
   const normalized = path.normalize(filePath);
@@ -61,11 +73,13 @@ export async function getCleanText(page: Page): Promise<string> {
     const body = document.body;
     if (!body) return '';
     const clone = body.cloneNode(true) as HTMLElement;
-    clone.querySelectorAll('script, style, noscript, svg').forEach(el => el.remove());
+    clone
+      .querySelectorAll('script, style, noscript, svg')
+      .forEach((el) => el.remove());
     return clone.innerText
       .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
       .join('\n');
   });
 }
@@ -96,18 +110,22 @@ export async function handleReadCommand(
 
     case 'links': {
       const links = await page.evaluate(() =>
-        [...document.querySelectorAll('a[href]')].map(a => ({
-          text: a.textContent?.trim().slice(0, 120) || '',
-          href: (a as HTMLAnchorElement).href,
-        })).filter(l => l.text && l.href)
+        [...document.querySelectorAll('a[href]')]
+          .map((a) => ({
+            text: a.textContent?.trim().slice(0, 120) || '',
+            href: (a as HTMLAnchorElement).href,
+          }))
+          .filter((l) => l.text && l.href)
       );
-      return links.map(l => `${l.text} → ${l.href}`).join('\n');
+      return links.map((l) => `${l.text} → ${l.href}`).join('\n');
     }
 
     case 'forms': {
       const forms = await page.evaluate(() => {
         return [...document.querySelectorAll('form')].map((form, i) => {
-          const fields = [...form.querySelectorAll('input, select, textarea')].map(el => {
+          const fields = [
+            ...form.querySelectorAll('input, select, textarea'),
+          ].map((el) => {
             const input = el as HTMLInputElement;
             return {
               tag: el.tagName.toLowerCase(),
@@ -116,10 +134,17 @@ export async function handleReadCommand(
               id: input.id || undefined,
               placeholder: input.placeholder || undefined,
               required: input.required || undefined,
-              value: input.type === 'password' ? '[redacted]' : (input.value || undefined),
-              options: el.tagName === 'SELECT'
-                ? [...(el as HTMLSelectElement).options].map(o => ({ value: o.value, text: o.text }))
-                : undefined,
+              value:
+                input.type === 'password'
+                  ? '[redacted]'
+                  : input.value || undefined,
+              options:
+                el.tagName === 'SELECT'
+                  ? [...(el as HTMLSelectElement).options].map((o) => ({
+                      value: o.value,
+                      text: o.text,
+                    }))
+                  : undefined,
             };
           });
           return {
@@ -135,7 +160,7 @@ export async function handleReadCommand(
     }
 
     case 'accessibility': {
-      const snapshot = await page.locator("body").ariaSnapshot();
+      const snapshot = await page.locator('body').ariaSnapshot();
       return snapshot;
     }
 
@@ -144,23 +169,29 @@ export async function handleReadCommand(
       if (!expr) throw new Error('Usage: browse js <expression>');
       const wrapped = wrapForEvaluate(expr);
       const result = await page.evaluate(wrapped);
-      return typeof result === 'object' ? JSON.stringify(result, null, 2) : String(result ?? '');
+      return typeof result === 'object'
+        ? JSON.stringify(result, null, 2)
+        : String(result ?? '');
     }
 
     case 'eval': {
       const filePath = args[0];
       if (!filePath) throw new Error('Usage: browse eval <js-file>');
       validateReadPath(filePath);
-      if (!fs.existsSync(filePath)) throw new Error(`File not found: ${filePath}`);
+      if (!fs.existsSync(filePath))
+        throw new Error(`File not found: ${filePath}`);
       const code = fs.readFileSync(filePath, 'utf-8');
       const wrapped = wrapForEvaluate(code);
       const result = await page.evaluate(wrapped);
-      return typeof result === 'object' ? JSON.stringify(result, null, 2) : String(result ?? '');
+      return typeof result === 'object'
+        ? JSON.stringify(result, null, 2)
+        : String(result ?? '');
     }
 
     case 'css': {
       const [selector, property] = args;
-      if (!selector || !property) throw new Error('Usage: browse css <selector> <property>');
+      if (!selector || !property)
+        throw new Error('Usage: browse css <selector> <property>');
       const resolved = await bm.resolveRef(selector);
       if ('locator' in resolved) {
         const value = await resolved.locator.evaluate(
@@ -211,13 +242,22 @@ export async function handleReadCommand(
         consoleBuffer.clear();
         return 'Console buffer cleared.';
       }
-      const entries = args[0] === '--errors'
-        ? consoleBuffer.toArray().filter(e => e.level === 'error' || e.level === 'warning')
-        : consoleBuffer.toArray();
-      if (entries.length === 0) return args[0] === '--errors' ? '(no console errors)' : '(no console messages)';
-      return entries.map(e =>
-        `[${new Date(e.timestamp).toISOString()}] [${e.level}] ${e.text}`
-      ).join('\n');
+      const entries =
+        args[0] === '--errors'
+          ? consoleBuffer
+              .toArray()
+              .filter((e) => e.level === 'error' || e.level === 'warning')
+          : consoleBuffer.toArray();
+      if (entries.length === 0)
+        return args[0] === '--errors'
+          ? '(no console errors)'
+          : '(no console messages)';
+      return entries
+        .map(
+          (e) =>
+            `[${new Date(e.timestamp).toISOString()}] [${e.level}] ${e.text}`
+        )
+        .join('\n');
     }
 
     case 'network': {
@@ -226,9 +266,13 @@ export async function handleReadCommand(
         return 'Network buffer cleared.';
       }
       if (networkBuffer.length === 0) return '(no network requests)';
-      return networkBuffer.toArray().map(e =>
-        `${e.method} ${e.url} → ${e.status || 'pending'} (${e.duration || '?'}ms, ${e.size || '?'}B)`
-      ).join('\n');
+      return networkBuffer
+        .toArray()
+        .map(
+          (e) =>
+            `${e.method} ${e.url} → ${e.status || 'pending'} (${e.duration || '?'}ms, ${e.size || '?'}B)`
+        )
+        .join('\n');
     }
 
     case 'dialog': {
@@ -237,15 +281,22 @@ export async function handleReadCommand(
         return 'Dialog buffer cleared.';
       }
       if (dialogBuffer.length === 0) return '(no dialogs captured)';
-      return dialogBuffer.toArray().map(e =>
-        `[${new Date(e.timestamp).toISOString()}] [${e.type}] "${e.message}" → ${e.action}${e.response ? ` "${e.response}"` : ''}`
-      ).join('\n');
+      return dialogBuffer
+        .toArray()
+        .map(
+          (e) =>
+            `[${new Date(e.timestamp).toISOString()}] [${e.type}] "${e.message}" → ${e.action}${e.response ? ` "${e.response}"` : ''}`
+        )
+        .join('\n');
     }
 
     case 'is': {
       const property = args[0];
       const selector = args[1];
-      if (!property || !selector) throw new Error('Usage: browse is <property> <selector>\nProperties: visible, hidden, enabled, disabled, checked, editable, focused');
+      if (!property || !selector)
+        throw new Error(
+          'Usage: browse is <property> <selector>\nProperties: visible, hidden, enabled, disabled, checked, editable, focused'
+        );
 
       const resolved = await bm.resolveRef(selector);
       let locator;
@@ -256,12 +307,18 @@ export async function handleReadCommand(
       }
 
       switch (property) {
-        case 'visible':  return String(await locator.isVisible());
-        case 'hidden':   return String(await locator.isHidden());
-        case 'enabled':  return String(await locator.isEnabled());
-        case 'disabled': return String(await locator.isDisabled());
-        case 'checked':  return String(await locator.isChecked());
-        case 'editable': return String(await locator.isEditable());
+        case 'visible':
+          return String(await locator.isVisible());
+        case 'hidden':
+          return String(await locator.isHidden());
+        case 'enabled':
+          return String(await locator.isEnabled());
+        case 'disabled':
+          return String(await locator.isDisabled());
+        case 'checked':
+          return String(await locator.isChecked());
+        case 'editable':
+          return String(await locator.isEditable());
         case 'focused': {
           const isFocused = await locator.evaluate(
             (el) => el === document.activeElement
@@ -269,7 +326,9 @@ export async function handleReadCommand(
           return String(isFocused);
         }
         default:
-          throw new Error(`Unknown property: ${property}. Use: visible, hidden, enabled, disabled, checked, editable, focused`);
+          throw new Error(
+            `Unknown property: ${property}. Use: visible, hidden, enabled, disabled, checked, editable, focused`
+          );
       }
     }
 
@@ -282,7 +341,10 @@ export async function handleReadCommand(
       if (args[0] === 'set' && args[1]) {
         const key = args[1];
         const value = args[2] || '';
-        await page.evaluate(([k, v]) => localStorage.setItem(k, v), [key, value]);
+        await page.evaluate(
+          ([k, v]) => localStorage.setItem(k, v),
+          [key, value]
+        );
         return `Set localStorage["${key}"]`;
       }
       const storage = await page.evaluate(() => ({
@@ -294,12 +356,18 @@ export async function handleReadCommand(
 
     case 'perf': {
       const timings = await page.evaluate(() => {
-        const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+        const nav = performance.getEntriesByType(
+          'navigation'
+        )[0] as PerformanceNavigationTiming;
         if (!nav) return 'No navigation timing data available.';
         return {
           dns: Math.round(nav.domainLookupEnd - nav.domainLookupStart),
           tcp: Math.round(nav.connectEnd - nav.connectStart),
-          ssl: Math.round(nav.secureConnectionStart > 0 ? nav.connectEnd - nav.secureConnectionStart : 0),
+          ssl: Math.round(
+            nav.secureConnectionStart > 0
+              ? nav.connectEnd - nav.secureConnectionStart
+              : 0
+          ),
           ttfb: Math.round(nav.responseStart - nav.requestStart),
           download: Math.round(nav.responseEnd - nav.responseStart),
           domParse: Math.round(nav.domInteractive - nav.responseEnd),

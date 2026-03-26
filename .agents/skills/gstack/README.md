@@ -23,6 +23,7 @@ I am learning how to get to the edge of what agentic systems can do as of March 
 Fork it. Improve it. Make it yours. Don't player hate, appreciate.
 
 **Who this is for:**
+
 - **Founders and CEOs** — especially technical ones who still want to ship. This is how you build like a team of twenty.
 - **First-time Claude Code users** — gstack is the best way to start. Structured roles instead of a blank prompt.
 - **Tech leads and staff engineers** — bring rigorous review, QA, and release automation to every PR
@@ -127,34 +128,34 @@ Each skill feeds into the next. `/office-hours` writes a design doc that `/plan-
 
 One sprint, one person, one feature — that takes about 30 minutes with gstack. But here's what changes everything: you can run 10-15 of these sprints in parallel. Different features, different branches, different agents — all at the same time. That is how I ship 10,000+ lines of production code per day while doing my actual job.
 
-| Skill | Your specialist | What they do |
-|-------|----------------|--------------|
-| `/office-hours` | **YC Office Hours** | Start here. Six forcing questions that reframe your product before you write code. Pushes back on your framing, challenges premises, generates implementation alternatives. Design doc feeds into every downstream skill. |
-| `/plan-ceo-review` | **CEO / Founder** | Rethink the problem. Find the 10-star product hiding inside the request. Four modes: Expansion, Selective Expansion, Hold Scope, Reduction. |
-| `/plan-eng-review` | **Eng Manager** | Lock in architecture, data flow, diagrams, edge cases, and tests. Forces hidden assumptions into the open. |
-| `/plan-design-review` | **Senior Designer** | Rates each design dimension 0-10, explains what a 10 looks like, then edits the plan to get there. AI Slop detection. Interactive — one AskUserQuestion per design choice. |
-| `/design-consultation` | **Design Partner** | Build a complete design system from scratch. Knows the landscape, proposes creative risks, generates realistic product mockups. Design at the heart of all other phases. |
-| `/review` | **Staff Engineer** | Find the bugs that pass CI but blow up in production. Auto-fixes the obvious ones. Flags completeness gaps. |
-| `/investigate` | **Debugger** | Systematic root-cause debugging. Iron Law: no fixes without investigation. Traces data flow, tests hypotheses, stops after 3 failed fixes. |
-| `/design-review` | **Designer Who Codes** | Same audit as /plan-design-review, then fixes what it finds. Atomic commits, before/after screenshots. |
-| `/qa` | **QA Lead** | Test your app, find bugs, fix them with atomic commits, re-verify. Auto-generates regression tests for every fix. |
-| `/qa-only` | **QA Reporter** | Same methodology as /qa but report only. Use when you want a pure bug report without code changes. |
-| `/ship` | **Release Engineer** | Sync main, run tests, audit coverage, push, open PR. Bootstraps test frameworks if you don't have one. One command. |
-| `/document-release` | **Technical Writer** | Update all project docs to match what you just shipped. Catches stale READMEs automatically. |
-| `/retro` | **Eng Manager** | Team-aware weekly retro. Per-person breakdowns, shipping streaks, test health trends, growth opportunities. |
-| `/browse` | **QA Engineer** | Give the agent eyes. Real Chromium browser, real clicks, real screenshots. ~100ms per command. |
-| `/setup-browser-cookies` | **Session Manager** | Import cookies from your real browser (Chrome, Arc, Brave, Edge) into the headless session. Test authenticated pages. |
+| Skill                    | Your specialist        | What they do                                                                                                                                                                                                              |
+| ------------------------ | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/office-hours`          | **YC Office Hours**    | Start here. Six forcing questions that reframe your product before you write code. Pushes back on your framing, challenges premises, generates implementation alternatives. Design doc feeds into every downstream skill. |
+| `/plan-ceo-review`       | **CEO / Founder**      | Rethink the problem. Find the 10-star product hiding inside the request. Four modes: Expansion, Selective Expansion, Hold Scope, Reduction.                                                                               |
+| `/plan-eng-review`       | **Eng Manager**        | Lock in architecture, data flow, diagrams, edge cases, and tests. Forces hidden assumptions into the open.                                                                                                                |
+| `/plan-design-review`    | **Senior Designer**    | Rates each design dimension 0-10, explains what a 10 looks like, then edits the plan to get there. AI Slop detection. Interactive — one AskUserQuestion per design choice.                                                |
+| `/design-consultation`   | **Design Partner**     | Build a complete design system from scratch. Knows the landscape, proposes creative risks, generates realistic product mockups. Design at the heart of all other phases.                                                  |
+| `/review`                | **Staff Engineer**     | Find the bugs that pass CI but blow up in production. Auto-fixes the obvious ones. Flags completeness gaps.                                                                                                               |
+| `/investigate`           | **Debugger**           | Systematic root-cause debugging. Iron Law: no fixes without investigation. Traces data flow, tests hypotheses, stops after 3 failed fixes.                                                                                |
+| `/design-review`         | **Designer Who Codes** | Same audit as /plan-design-review, then fixes what it finds. Atomic commits, before/after screenshots.                                                                                                                    |
+| `/qa`                    | **QA Lead**            | Test your app, find bugs, fix them with atomic commits, re-verify. Auto-generates regression tests for every fix.                                                                                                         |
+| `/qa-only`               | **QA Reporter**        | Same methodology as /qa but report only. Use when you want a pure bug report without code changes.                                                                                                                        |
+| `/ship`                  | **Release Engineer**   | Sync main, run tests, audit coverage, push, open PR. Bootstraps test frameworks if you don't have one. One command.                                                                                                       |
+| `/document-release`      | **Technical Writer**   | Update all project docs to match what you just shipped. Catches stale READMEs automatically.                                                                                                                              |
+| `/retro`                 | **Eng Manager**        | Team-aware weekly retro. Per-person breakdowns, shipping streaks, test health trends, growth opportunities.                                                                                                               |
+| `/browse`                | **QA Engineer**        | Give the agent eyes. Real Chromium browser, real clicks, real screenshots. ~100ms per command.                                                                                                                            |
+| `/setup-browser-cookies` | **Session Manager**    | Import cookies from your real browser (Chrome, Arc, Brave, Edge) into the headless session. Test authenticated pages.                                                                                                     |
 
 ### Power tools
 
-| Skill | What it does |
-|-------|-------------|
-| `/codex` | **Second Opinion** — independent code review from OpenAI Codex CLI. Three modes: review (pass/fail gate), adversarial challenge, and open consultation. Cross-model analysis when both `/review` and `/codex` have run. |
-| `/careful` | **Safety Guardrails** — warns before destructive commands (rm -rf, DROP TABLE, force-push). Say "be careful" to activate. Override any warning. |
-| `/freeze` | **Edit Lock** — restrict file edits to one directory. Prevents accidental changes outside scope while debugging. |
-| `/guard` | **Full Safety** — `/careful` + `/freeze` in one command. Maximum safety for prod work. |
-| `/unfreeze` | **Unlock** — remove the `/freeze` boundary. |
-| `/gstack-upgrade` | **Self-Updater** — upgrade gstack to latest. Detects global vs vendored install, syncs both, shows what changed. |
+| Skill             | What it does                                                                                                                                                                                                            |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/codex`          | **Second Opinion** — independent code review from OpenAI Codex CLI. Three modes: review (pass/fail gate), adversarial challenge, and open consultation. Cross-model analysis when both `/review` and `/codex` have run. |
+| `/careful`        | **Safety Guardrails** — warns before destructive commands (rm -rf, DROP TABLE, force-push). Say "be careful" to activate. Override any warning.                                                                         |
+| `/freeze`         | **Edit Lock** — restrict file edits to one directory. Prevents accidental changes outside scope while debugging.                                                                                                        |
+| `/guard`          | **Full Safety** — `/careful` + `/freeze` in one command. Maximum safety for prod work.                                                                                                                                  |
+| `/unfreeze`       | **Unlock** — remove the `/freeze` boundary.                                                                                                                                                                             |
+| `/gstack-upgrade` | **Self-Updater** — upgrade gstack to latest. Detects global vs vendored install, syncs both, shows what changed.                                                                                                        |
 
 **[Deep dives with examples and philosophy for every skill →](docs/skills.md)**
 
@@ -164,7 +165,7 @@ One sprint, one person, one feature — that takes about 30 minutes with gstack.
 
 **Design is at the heart.** `/design-consultation` doesn't just pick fonts. It researches what's out there in your space, proposes safe choices AND creative risks, generates realistic mockups of your actual product, and writes `DESIGN.md` — and then `/design-review` and `/plan-eng-review` read what you chose. Design decisions flow through the whole system.
 
-**`/qa` was a massive unlock.** It let me go from 6 to 12 parallel workers. Claude Code saying *"I SEE THE ISSUE"* and then actually fixing it, generating a regression test, and verifying the fix — that changed how I work. The agent has eyes now.
+**`/qa` was a massive unlock.** It let me go from 6 to 12 parallel workers. Claude Code saying _"I SEE THE ISSUE"_ and then actually fixing it, generating a regression test, and verifying the fix — that changed how I work. The agent has eyes now.
 
 **Smart review routing.** Just like at a well-run startup: CEO doesn't have to look at infra bug fixes, design review isn't needed for backend changes. gstack tracks what reviews are run, figures out what's appropriate, and just does the smart thing. The Review Readiness Dashboard tells you where you stand before you ship.
 
@@ -208,13 +209,13 @@ Fifteen specialists and six power tools. All slash commands. All Markdown. All f
 
 ## Docs
 
-| Doc | What it covers |
-|-----|---------------|
+| Doc                                | What it covers                                                                     |
+| ---------------------------------- | ---------------------------------------------------------------------------------- |
 | [Skill Deep Dives](docs/skills.md) | Philosophy, examples, and workflow for every skill (includes Greptile integration) |
-| [Architecture](ARCHITECTURE.md) | Design decisions and system internals |
-| [Browser Reference](BROWSER.md) | Full command reference for `/browse` |
-| [Contributing](CONTRIBUTING.md) | Dev setup, testing, contributor mode, and dev mode |
-| [Changelog](CHANGELOG.md) | What's new in every version |
+| [Architecture](ARCHITECTURE.md)    | Design decisions and system internals                                              |
+| [Browser Reference](BROWSER.md)    | Full command reference for `/browse`                                               |
+| [Contributing](CONTRIBUTING.md)    | Dev setup, testing, contributor mode, and dev mode                                 |
+| [Changelog](CHANGELOG.md)          | What's new in every version                                                        |
 
 ## Privacy & Telemetry
 

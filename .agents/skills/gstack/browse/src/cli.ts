@@ -11,7 +11,8 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { resolveConfig, ensureStateDir, readVersionHash } from './config';
+
+import { ensureStateDir, readVersionHash, resolveConfig } from './config';
 
 const config = resolveConfig();
 const MAX_START_WAIT = 8000; // 8 seconds to start
@@ -35,7 +36,12 @@ export function resolveServerScript(
 
   // Compiled binary: derive the source tree from browse/dist/browse
   if (execPath) {
-    const adjacent = path.resolve(path.dirname(execPath), '..', 'src', 'server.ts');
+    const adjacent = path.resolve(
+      path.dirname(execPath),
+      '..',
+      'src',
+      'server.ts'
+    );
     if (fs.existsSync(adjacent)) {
       return adjacent;
     }
@@ -80,7 +86,11 @@ function isProcessAlive(pid: number): boolean {
 async function killServer(pid: number): Promise<void> {
   if (!isProcessAlive(pid)) return;
 
-  try { process.kill(pid, 'SIGTERM'); } catch { return; }
+  try {
+    process.kill(pid, 'SIGTERM');
+  } catch {
+    return;
+  }
 
   // Wait up to 2s for graceful shutdown
   const deadline = Date.now() + 2000;
@@ -90,7 +100,9 @@ async function killServer(pid: number): Promise<void> {
 
   // Force kill if still alive
   if (isProcessAlive(pid)) {
-    try { process.kill(pid, 'SIGKILL'); } catch {}
+    try {
+      process.kill(pid, 'SIGKILL');
+    } catch {}
   }
 }
 
@@ -100,19 +112,28 @@ async function killServer(pid: number): Promise<void> {
  */
 function cleanupLegacyState(): void {
   try {
-    const files = fs.readdirSync('/tmp').filter(f => f.startsWith('browse-server') && f.endsWith('.json'));
+    const files = fs
+      .readdirSync('/tmp')
+      .filter((f) => f.startsWith('browse-server') && f.endsWith('.json'));
     for (const file of files) {
       const fullPath = `/tmp/${file}`;
       try {
         const data = JSON.parse(fs.readFileSync(fullPath, 'utf-8'));
         if (data.pid && isProcessAlive(data.pid)) {
           // Verify this is actually a browse server before killing
-          const check = Bun.spawnSync(['ps', '-p', String(data.pid), '-o', 'command='], {
-            stdout: 'pipe', stderr: 'pipe', timeout: 2000,
-          });
+          const check = Bun.spawnSync(
+            ['ps', '-p', String(data.pid), '-o', 'command='],
+            {
+              stdout: 'pipe',
+              stderr: 'pipe',
+              timeout: 2000,
+            }
+          );
           const cmd = check.stdout.toString().trim();
           if (cmd.includes('bun') || cmd.includes('server.ts')) {
-            try { process.kill(data.pid, 'SIGTERM'); } catch {}
+            try {
+              process.kill(data.pid, 'SIGTERM');
+            } catch {}
           }
         }
         fs.unlinkSync(fullPath);
@@ -121,11 +142,18 @@ function cleanupLegacyState(): void {
       }
     }
     // Clean up legacy log files too
-    const logFiles = fs.readdirSync('/tmp').filter(f =>
-      f.startsWith('browse-console') || f.startsWith('browse-network') || f.startsWith('browse-dialog')
-    );
+    const logFiles = fs
+      .readdirSync('/tmp')
+      .filter(
+        (f) =>
+          f.startsWith('browse-console') ||
+          f.startsWith('browse-network') ||
+          f.startsWith('browse-dialog')
+      );
     for (const file of logFiles) {
-      try { fs.unlinkSync(`/tmp/${file}`); } catch {}
+      try {
+        fs.unlinkSync(`/tmp/${file}`);
+      } catch {}
     }
   } catch {
     // /tmp read failed — skip legacy cleanup
@@ -137,7 +165,9 @@ async function startServer(): Promise<ServerState> {
   ensureStateDir(config);
 
   // Clean up stale state file
-  try { fs.unlinkSync(config.stateFile); } catch {}
+  try {
+    fs.unlinkSync(config.stateFile);
+  } catch {}
 
   // Start server as detached background process
   const proc = Bun.spawn(['bun', 'run', SERVER_SCRIPT], {
@@ -178,7 +208,11 @@ async function ensureServer(): Promise<ServerState> {
   if (state && isProcessAlive(state.pid)) {
     // Check for binary version mismatch (auto-restart on update)
     const currentVersion = readVersionHash();
-    if (currentVersion && state.binaryVersion && currentVersion !== state.binaryVersion) {
+    if (
+      currentVersion &&
+      state.binaryVersion &&
+      currentVersion !== state.binaryVersion
+    ) {
       console.error('[browse] Binary updated, restarting server...');
       await killServer(state.pid);
       return startServer();
@@ -190,7 +224,7 @@ async function ensureServer(): Promise<ServerState> {
         signal: AbortSignal.timeout(2000),
       });
       if (resp.ok) {
-        const health = await resp.json() as any;
+        const health = (await resp.json()) as any;
         if (health.status === 'healthy') {
           return state;
         }
@@ -206,7 +240,12 @@ async function ensureServer(): Promise<ServerState> {
 }
 
 // ─── Command Dispatch ──────────────────────────────────────────
-async function sendCommand(state: ServerState, command: string, args: string[], retries = 0): Promise<void> {
+async function sendCommand(
+  state: ServerState,
+  command: string,
+  args: string[],
+  retries = 0
+): Promise<void> {
   const body = JSON.stringify({ command, args });
 
   try {
@@ -214,7 +253,7 @@ async function sendCommand(state: ServerState, command: string, args: string[], 
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${state.token}`,
+        Authorization: `Bearer ${state.token}`,
       },
       body,
       signal: AbortSignal.timeout(30000),
@@ -222,7 +261,9 @@ async function sendCommand(state: ServerState, command: string, args: string[], 
 
     if (resp.status === 401) {
       // Token mismatch — server may have restarted
-      console.error('[browse] Auth failed — server may have restarted. Retrying...');
+      console.error(
+        '[browse] Auth failed — server may have restarted. Retrying...'
+      );
       const newState = readState();
       if (newState && newState.token !== state.token) {
         return sendCommand(newState, command, args);
@@ -252,8 +293,13 @@ async function sendCommand(state: ServerState, command: string, args: string[], 
       process.exit(1);
     }
     // Connection error — server may have crashed
-    if (err.code === 'ECONNREFUSED' || err.code === 'ECONNRESET' || err.message?.includes('fetch failed')) {
-      if (retries >= 1) throw new Error('[browse] Server crashed twice in a row — aborting');
+    if (
+      err.code === 'ECONNREFUSED' ||
+      err.code === 'ECONNRESET' ||
+      err.message?.includes('fetch failed')
+    ) {
+      if (retries >= 1)
+        throw new Error('[browse] Server crashed twice in a row — aborting');
       console.error('[browse] Server connection lost. Restarting...');
       const newState = await startServer();
       return sendCommand(newState, command, args, retries + 1);

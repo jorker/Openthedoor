@@ -2,21 +2,24 @@
  * Meta commands — tabs, server control, screenshots, chain, diff, snapshot
  */
 
-import type { BrowserManager } from './browser-manager';
-import { handleSnapshot } from './snapshot';
-import { getCleanText } from './read-commands';
-import { READ_COMMANDS, WRITE_COMMANDS, META_COMMANDS } from './commands';
-import { validateNavigationUrl } from './url-validation';
-import * as Diff from 'diff';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as Diff from 'diff';
+
+import type { BrowserManager } from './browser-manager';
+import { META_COMMANDS, READ_COMMANDS, WRITE_COMMANDS } from './commands';
+import { getCleanText } from './read-commands';
+import { handleSnapshot } from './snapshot';
+import { validateNavigationUrl } from './url-validation';
 
 // Security: Path validation to prevent path traversal attacks
 const SAFE_DIRECTORIES = ['/tmp', process.cwd()];
 
 export function validateOutputPath(filePath: string): void {
   const resolved = path.resolve(filePath);
-  const isSafe = SAFE_DIRECTORIES.some(dir => resolved === dir || resolved.startsWith(dir + '/'));
+  const isSafe = SAFE_DIRECTORIES.some(
+    (dir) => resolved === dir || resolved.startsWith(dir + '/')
+  );
   if (!isSafe) {
     throw new Error(`Path must be within: ${SAFE_DIRECTORIES.join(', ')}`);
   }
@@ -32,9 +35,12 @@ export async function handleMetaCommand(
     // ─── Tabs ──────────────────────────────────────────
     case 'tabs': {
       const tabs = await bm.getTabListWithTitles();
-      return tabs.map(t =>
-        `${t.active ? '→ ' : '  '}[${t.id}] ${t.title || '(untitled)'} — ${t.url}`
-      ).join('\n');
+      return tabs
+        .map(
+          (t) =>
+            `${t.active ? '→ ' : '  '}[${t.id}] ${t.title || '(untitled)'} — ${t.url}`
+        )
+        .join('\n');
     }
 
     case 'tab': {
@@ -89,7 +95,9 @@ export async function handleMetaCommand(
       // Parse priority: flags (--viewport, --clip) → selector (@ref, CSS) → output path
       const page = bm.getPage();
       let outputPath = '/tmp/browse-screenshot.png';
-      let clipRect: { x: number; y: number; width: number; height: number } | undefined;
+      let clipRect:
+        | { x: number; y: number; width: number; height: number }
+        | undefined;
       let targetSelector: string | undefined;
       let viewportOnly = false;
 
@@ -99,11 +107,19 @@ export async function handleMetaCommand(
           viewportOnly = true;
         } else if (args[i] === '--clip') {
           const coords = args[++i];
-          if (!coords) throw new Error('Usage: screenshot --clip x,y,w,h [path]');
+          if (!coords)
+            throw new Error('Usage: screenshot --clip x,y,w,h [path]');
           const parts = coords.split(',').map(Number);
           if (parts.length !== 4 || parts.some(isNaN))
-            throw new Error('Usage: screenshot --clip x,y,width,height — all must be numbers');
-          clipRect = { x: parts[0], y: parts[1], width: parts[2], height: parts[3] };
+            throw new Error(
+              'Usage: screenshot --clip x,y,width,height — all must be numbers'
+            );
+          clipRect = {
+            x: parts[0],
+            y: parts[1],
+            width: parts[2],
+            height: parts[3],
+          };
         } else if (args[i].startsWith('--')) {
           throw new Error(`Unknown screenshot flag: ${args[i]}`);
         } else {
@@ -113,7 +129,13 @@ export async function handleMetaCommand(
 
       // Separate target (selector/@ref) from output path
       for (const arg of remaining) {
-        if (arg.startsWith('@e') || arg.startsWith('@c') || arg.startsWith('.') || arg.startsWith('#') || arg.includes('[')) {
+        if (
+          arg.startsWith('@e') ||
+          arg.startsWith('@c') ||
+          arg.startsWith('.') ||
+          arg.startsWith('#') ||
+          arg.includes('[')
+        ) {
           targetSelector = arg;
         } else {
           outputPath = arg;
@@ -131,7 +153,10 @@ export async function handleMetaCommand(
 
       if (targetSelector) {
         const resolved = await bm.resolveRef(targetSelector);
-        const locator = 'locator' in resolved ? resolved.locator : page.locator(resolved.selector);
+        const locator =
+          'locator' in resolved
+            ? resolved.locator
+            : page.locator(resolved.selector);
         await locator.screenshot({ path: outputPath, timeout: 5000 });
         return `Screenshot saved (element): ${outputPath}`;
       }
@@ -184,16 +209,22 @@ export async function handleMetaCommand(
     case 'chain': {
       // Read JSON array from args[0] (if provided) or expect it was passed as body
       const jsonStr = args[0];
-      if (!jsonStr) throw new Error('Usage: echo \'[["goto","url"],["text"]]\' | browse chain');
+      if (!jsonStr)
+        throw new Error(
+          'Usage: echo \'[["goto","url"],["text"]]\' | browse chain'
+        );
 
       let commands: string[][];
       try {
         commands = JSON.parse(jsonStr);
       } catch {
-        throw new Error('Invalid JSON. Expected: [["command", "arg1", "arg2"], ...]');
+        throw new Error(
+          'Invalid JSON. Expected: [["command", "arg1", "arg2"], ...]'
+        );
       }
 
-      if (!Array.isArray(commands)) throw new Error('Expected JSON array of commands');
+      if (!Array.isArray(commands))
+        throw new Error('Expected JSON array of commands');
 
       const results: string[] = [];
       const { handleReadCommand } = await import('./read-commands');
@@ -203,9 +234,12 @@ export async function handleMetaCommand(
         const [name, ...cmdArgs] = cmd;
         try {
           let result: string;
-          if (WRITE_COMMANDS.has(name))    result = await handleWriteCommand(name, cmdArgs, bm);
-          else if (READ_COMMANDS.has(name))  result = await handleReadCommand(name, cmdArgs, bm);
-          else if (META_COMMANDS.has(name))  result = await handleMetaCommand(name, cmdArgs, bm, shutdown);
+          if (WRITE_COMMANDS.has(name))
+            result = await handleWriteCommand(name, cmdArgs, bm);
+          else if (READ_COMMANDS.has(name))
+            result = await handleReadCommand(name, cmdArgs, bm);
+          else if (META_COMMANDS.has(name))
+            result = await handleMetaCommand(name, cmdArgs, bm, shutdown);
           else throw new Error(`Unknown command: ${name}`);
           results.push(`[${name}] ${result}`);
         } catch (err: any) {
@@ -235,7 +269,7 @@ export async function handleMetaCommand(
 
       for (const part of changes) {
         const prefix = part.added ? '+' : part.removed ? '-' : ' ';
-        const lines = part.value.split('\n').filter(l => l.length > 0);
+        const lines = part.value.split('\n').filter((l) => l.length > 0);
         for (const line of lines) {
           output.push(`${prefix} ${line}`);
         }

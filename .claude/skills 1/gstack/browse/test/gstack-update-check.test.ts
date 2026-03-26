@@ -6,10 +6,19 @@
  * for full isolation.
  */
 
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { mkdtempSync, writeFileSync, rmSync, existsSync, readFileSync, mkdirSync, symlinkSync, utimesSync } from 'fs';
-import { join } from 'path';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  utimesSync,
+  writeFileSync,
+} from 'fs';
 import { tmpdir } from 'os';
+import { join } from 'path';
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 
 const SCRIPT = join(import.meta.dir, '..', '..', 'bin', 'gstack-update-check');
 
@@ -41,7 +50,10 @@ beforeEach(() => {
   // Link real gstack-config so update_check config check works
   const binDir = join(gstackDir, 'bin');
   mkdirSync(binDir);
-  symlinkSync(join(import.meta.dir, '..', '..', 'bin', 'gstack-config'), join(binDir, 'gstack-config'));
+  symlinkSync(
+    join(import.meta.dir, '..', '..', 'bin', 'gstack-config'),
+    join(binDir, 'gstack-config')
+  );
 });
 
 afterEach(() => {
@@ -50,7 +62,10 @@ afterEach(() => {
 });
 
 function writeSnooze(version: string, level: number, epochSeconds: number) {
-  writeFileSync(join(stateDir, 'update-snoozed'), `${version} ${level} ${epochSeconds}`);
+  writeFileSync(
+    join(stateDir, 'update-snoozed'),
+    `${version} ${level} ${epochSeconds}`
+  );
 }
 
 function writeConfig(content: string) {
@@ -118,7 +133,10 @@ describe('gstack-update-check', () => {
   // ─── Path D2: Fresh cache, UPGRADE_AVAILABLE ────────────────
   test('echoes cached UPGRADE_AVAILABLE when cache is fresh', () => {
     writeFileSync(join(gstackDir, 'VERSION'), '0.3.3\n');
-    writeFileSync(join(stateDir, 'last-update-check'), 'UPGRADE_AVAILABLE 0.3.3 0.4.0');
+    writeFileSync(
+      join(stateDir, 'last-update-check'),
+      'UPGRADE_AVAILABLE 0.3.3 0.4.0'
+    );
 
     const { exitCode, stdout } = run();
     expect(exitCode).toBe(0);
@@ -129,7 +147,10 @@ describe('gstack-update-check', () => {
   test('re-checks when local version does not match cached old version', () => {
     writeFileSync(join(gstackDir, 'VERSION'), '0.4.0\n');
     // Cache says 0.3.3 → 0.4.0 but we're already on 0.4.0
-    writeFileSync(join(stateDir, 'last-update-check'), 'UPGRADE_AVAILABLE 0.3.3 0.4.0');
+    writeFileSync(
+      join(stateDir, 'last-update-check'),
+      'UPGRADE_AVAILABLE 0.3.3 0.4.0'
+    );
     // Remote also says 0.4.0 — should be up to date
     writeFileSync(join(gstackDir, 'REMOTE_VERSION'), '0.4.0\n');
 
@@ -167,7 +188,10 @@ describe('gstack-update-check', () => {
   // ─── Path G: Invalid remote response ────────────────────────
   test('treats invalid remote response as up to date', () => {
     writeFileSync(join(gstackDir, 'VERSION'), '0.3.3\n');
-    writeFileSync(join(gstackDir, 'REMOTE_VERSION'), '<html>404 Not Found</html>\n');
+    writeFileSync(
+      join(gstackDir, 'REMOTE_VERSION'),
+      '<html>404 Not Found</html>\n'
+    );
 
     const { exitCode, stdout } = run();
     expect(exitCode).toBe(0);
@@ -266,7 +290,10 @@ describe('gstack-update-check', () => {
   // ─── Snooze tests ───────────────────────────────────────────
   test('snoozed level 1 within 24h → silent (cached path)', () => {
     writeFileSync(join(gstackDir, 'VERSION'), '0.3.3\n');
-    writeFileSync(join(stateDir, 'last-update-check'), 'UPGRADE_AVAILABLE 0.3.3 0.4.0');
+    writeFileSync(
+      join(stateDir, 'last-update-check'),
+      'UPGRADE_AVAILABLE 0.3.3 0.4.0'
+    );
     writeSnooze('0.4.0', 1, nowEpoch() - 3600); // 1h ago (within 24h)
 
     const { exitCode, stdout } = run();
@@ -276,7 +303,10 @@ describe('gstack-update-check', () => {
 
   test('snoozed level 1 expired (25h ago) → outputs UPGRADE_AVAILABLE', () => {
     writeFileSync(join(gstackDir, 'VERSION'), '0.3.3\n');
-    writeFileSync(join(stateDir, 'last-update-check'), 'UPGRADE_AVAILABLE 0.3.3 0.4.0');
+    writeFileSync(
+      join(stateDir, 'last-update-check'),
+      'UPGRADE_AVAILABLE 0.3.3 0.4.0'
+    );
     writeSnooze('0.4.0', 1, nowEpoch() - 90000); // 25h ago
 
     const { exitCode, stdout } = run();
@@ -286,7 +316,10 @@ describe('gstack-update-check', () => {
 
   test('snoozed level 2 within 48h → silent', () => {
     writeFileSync(join(gstackDir, 'VERSION'), '0.3.3\n');
-    writeFileSync(join(stateDir, 'last-update-check'), 'UPGRADE_AVAILABLE 0.3.3 0.4.0');
+    writeFileSync(
+      join(stateDir, 'last-update-check'),
+      'UPGRADE_AVAILABLE 0.3.3 0.4.0'
+    );
     writeSnooze('0.4.0', 2, nowEpoch() - 86400); // 24h ago (within 48h)
 
     const { exitCode, stdout } = run();
@@ -296,7 +329,10 @@ describe('gstack-update-check', () => {
 
   test('snoozed level 2 expired (49h ago) → outputs', () => {
     writeFileSync(join(gstackDir, 'VERSION'), '0.3.3\n');
-    writeFileSync(join(stateDir, 'last-update-check'), 'UPGRADE_AVAILABLE 0.3.3 0.4.0');
+    writeFileSync(
+      join(stateDir, 'last-update-check'),
+      'UPGRADE_AVAILABLE 0.3.3 0.4.0'
+    );
     writeSnooze('0.4.0', 2, nowEpoch() - 176400); // 49h ago
 
     const { exitCode, stdout } = run();
@@ -306,7 +342,10 @@ describe('gstack-update-check', () => {
 
   test('snoozed level 3 within 7d → silent', () => {
     writeFileSync(join(gstackDir, 'VERSION'), '0.3.3\n');
-    writeFileSync(join(stateDir, 'last-update-check'), 'UPGRADE_AVAILABLE 0.3.3 0.4.0');
+    writeFileSync(
+      join(stateDir, 'last-update-check'),
+      'UPGRADE_AVAILABLE 0.3.3 0.4.0'
+    );
     writeSnooze('0.4.0', 3, nowEpoch() - 518400); // 6d ago (within 7d)
 
     const { exitCode, stdout } = run();
@@ -316,7 +355,10 @@ describe('gstack-update-check', () => {
 
   test('snoozed level 3 expired (8d ago) → outputs', () => {
     writeFileSync(join(gstackDir, 'VERSION'), '0.3.3\n');
-    writeFileSync(join(stateDir, 'last-update-check'), 'UPGRADE_AVAILABLE 0.3.3 0.4.0');
+    writeFileSync(
+      join(stateDir, 'last-update-check'),
+      'UPGRADE_AVAILABLE 0.3.3 0.4.0'
+    );
     writeSnooze('0.4.0', 3, nowEpoch() - 691200); // 8d ago
 
     const { exitCode, stdout } = run();
@@ -326,7 +368,10 @@ describe('gstack-update-check', () => {
 
   test('snooze ignored when version differs (new version resets snooze)', () => {
     writeFileSync(join(gstackDir, 'VERSION'), '0.3.3\n');
-    writeFileSync(join(stateDir, 'last-update-check'), 'UPGRADE_AVAILABLE 0.3.3 0.5.0');
+    writeFileSync(
+      join(stateDir, 'last-update-check'),
+      'UPGRADE_AVAILABLE 0.3.3 0.5.0'
+    );
     // Snoozed for 0.4.0, but remote is now 0.5.0
     writeSnooze('0.4.0', 3, nowEpoch() - 60); // very recent
 
@@ -337,7 +382,10 @@ describe('gstack-update-check', () => {
 
   test('corrupt snooze file → outputs normally', () => {
     writeFileSync(join(gstackDir, 'VERSION'), '0.3.3\n');
-    writeFileSync(join(stateDir, 'last-update-check'), 'UPGRADE_AVAILABLE 0.3.3 0.4.0');
+    writeFileSync(
+      join(stateDir, 'last-update-check'),
+      'UPGRADE_AVAILABLE 0.3.3 0.4.0'
+    );
     writeFileSync(join(stateDir, 'update-snoozed'), 'garbage');
 
     const { exitCode, stdout } = run();
@@ -347,7 +395,10 @@ describe('gstack-update-check', () => {
 
   test('non-numeric epoch in snooze file → outputs', () => {
     writeFileSync(join(gstackDir, 'VERSION'), '0.3.3\n');
-    writeFileSync(join(stateDir, 'last-update-check'), 'UPGRADE_AVAILABLE 0.3.3 0.4.0');
+    writeFileSync(
+      join(stateDir, 'last-update-check'),
+      'UPGRADE_AVAILABLE 0.3.3 0.4.0'
+    );
     writeFileSync(join(stateDir, 'update-snoozed'), '0.4.0 1 abc');
 
     const { exitCode, stdout } = run();
@@ -357,7 +408,10 @@ describe('gstack-update-check', () => {
 
   test('non-numeric level in snooze file → outputs', () => {
     writeFileSync(join(gstackDir, 'VERSION'), '0.3.3\n');
-    writeFileSync(join(stateDir, 'last-update-check'), 'UPGRADE_AVAILABLE 0.3.3 0.4.0');
+    writeFileSync(
+      join(stateDir, 'last-update-check'),
+      'UPGRADE_AVAILABLE 0.3.3 0.4.0'
+    );
     writeFileSync(join(stateDir, 'update-snoozed'), `0.4.0 abc ${nowEpoch()}`);
 
     const { exitCode, stdout } = run();
@@ -433,7 +487,10 @@ describe('gstack-update-check', () => {
   test('--force busts fresh UPGRADE_AVAILABLE cache', () => {
     writeFileSync(join(gstackDir, 'VERSION'), '0.3.3\n');
     writeFileSync(join(gstackDir, 'REMOTE_VERSION'), '0.3.3\n');
-    writeFileSync(join(stateDir, 'last-update-check'), 'UPGRADE_AVAILABLE 0.3.3 0.4.0');
+    writeFileSync(
+      join(stateDir, 'last-update-check'),
+      'UPGRADE_AVAILABLE 0.3.3 0.4.0'
+    );
 
     // Without --force: cache hit, outputs stale upgrade
     const cached = run();

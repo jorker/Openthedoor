@@ -7,6 +7,7 @@ description: |
   Use when asked to "weekly retro", "what did we ship", or "engineering retrospective".
   Proactively suggest at the end of a work week or sprint.
 ---
+
 <!-- AUTO-GENERATED from SKILL.md.tmpl — do not edit directly -->
 <!-- Regenerate: bun run gen:skill-docs -->
 
@@ -63,6 +64,7 @@ ask the user about telemetry. Use AskUserQuestion:
 > Change anytime with `gstack-config set telemetry off`.
 
 Options:
+
 - A) Help gstack get better! (recommended)
 - B) No thanks
 
@@ -70,10 +72,11 @@ If A: run `~/.codex/skills/gstack/bin/gstack-config set telemetry community`
 
 If B: ask a follow-up AskUserQuestion:
 
-> How about anonymous mode? We just learn that *someone* used gstack — no unique ID,
+> How about anonymous mode? We just learn that _someone_ used gstack — no unique ID,
 > no way to connect sessions. Just a counter that helps us know if anyone's out there.
 
 Options:
+
 - A) Sure, anonymous is fine
 - B) No thanks, fully off
 
@@ -81,6 +84,7 @@ If B→A: run `~/.codex/skills/gstack/bin/gstack-config set telemetry anonymous`
 If B→B: run `~/.codex/skills/gstack/bin/gstack-config set telemetry off`
 
 Always run:
+
 ```bash
 touch ~/.gstack/.telemetry-prompted
 ```
@@ -90,6 +94,7 @@ This only happens once. If `TEL_PROMPTED` is `yes`, skip this entirely.
 ## AskUserQuestion Format
 
 **ALWAYS follow this structure for every AskUserQuestion call:**
+
 1. **Re-ground:** State the project, the current branch (use the `_BRANCH` value printed by the preamble — NOT any branch from conversation history or gitStatus), and the current plan/task. (1-2 sentences)
 2. **Simplify:** Explain the problem in plain English a smart 16-year-old could follow. No raw function names, no internal jargon, no implementation details. Use concrete examples and analogies. Say what it DOES, not what it's called.
 3. **Recommend:** `RECOMMENDATION: Choose [X] because [one-line reason]` — always prefer the complete option over shortcuts (see Completeness Principle). Include `Completeness: X/10` for each option. Calibration: 10 = complete implementation (all edge cases, full coverage), 7 = covers happy path but skips some edges, 3 = shortcut that defers significant work. If both options are 8+, pick the higher; if one is ≤5, flag it.
@@ -107,18 +112,19 @@ AI-assisted coding makes the marginal cost of completeness near-zero. When you p
 - **Lake vs. ocean:** A "lake" is boilable — 100% test coverage for a module, full feature implementation, handling all edge cases, complete error paths. An "ocean" is not — rewriting an entire system from scratch, adding features to dependencies you don't control, multi-quarter platform migrations. Recommend boiling lakes. Flag oceans as out of scope.
 - **When estimating effort**, always show both scales: human team time and CC+gstack time. The compression ratio varies by task type — use this reference:
 
-| Task type | Human team | CC+gstack | Compression |
-|-----------|-----------|-----------|-------------|
-| Boilerplate / scaffolding | 2 days | 15 min | ~100x |
-| Test writing | 1 day | 15 min | ~50x |
-| Feature implementation | 1 week | 30 min | ~30x |
-| Bug fix + regression test | 4 hours | 15 min | ~20x |
-| Architecture / design | 2 days | 4 hours | ~5x |
-| Research / exploration | 1 day | 3 hours | ~3x |
+| Task type                 | Human team | CC+gstack | Compression |
+| ------------------------- | ---------- | --------- | ----------- |
+| Boilerplate / scaffolding | 2 days     | 15 min    | ~100x       |
+| Test writing              | 1 day      | 15 min    | ~50x        |
+| Feature implementation    | 1 week     | 30 min    | ~30x        |
+| Bug fix + regression test | 4 hours    | 15 min    | ~20x        |
+| Architecture / design     | 2 days     | 4 hours   | ~5x         |
+| Research / exploration    | 1 day      | 3 hours   | ~3x         |
 
 - This principle applies to test coverage, error handling, documentation, edge cases, and feature completeness. Don't skip the last 10% to "save time" — with AI, that 10% costs seconds.
 
 **Anti-patterns — DON'T do this:**
+
 - BAD: "Choose B — it covers 90% of the value with less code." (If A is only 70 lines more, choose A.)
 - BAD: "We can skip edge case handling to save time." (Edge case handling costs minutes with CC.)
 - BAD: "Let's defer test coverage to a follow-up PR." (Tests are the cheapest lake to boil.)
@@ -150,7 +156,9 @@ Hey gstack team — ran into this while using /{skill-name}:
 
 ## Raw output
 ```
+
 {paste the actual error or unexpected output here}
+
 ```
 
 ## What would make this a 10
@@ -164,6 +172,7 @@ Slug: lowercase, hyphens, max 60 chars (e.g. `browse-js-no-await`). Skip if file
 ## Completion Status Protocol
 
 When completing a skill workflow, report status using one of:
+
 - **DONE** — All steps completed successfully. Evidence provided for each claim.
 - **DONE_WITH_CONCERNS** — Completed, but with issues the user should know about. List each concern.
 - **BLOCKED** — Cannot proceed. State what is blocking and what was tried.
@@ -174,11 +183,13 @@ When completing a skill workflow, report status using one of:
 It is always OK to stop and say "this is too hard for me" or "I'm not confident in this result."
 
 Bad work is worse than no work. You will not be penalized for escalating.
+
 - If you have attempted a task 3 times without success, STOP and escalate.
 - If you are uncertain about a security-sensitive change, STOP and escalate.
 - If the scope of work exceeds what you can verify, STOP and escalate.
 
 Escalation format:
+
 ```
 STATUS: BLOCKED | NEEDS_CONTEXT
 REASON: [1-2 sentences]
@@ -229,9 +240,11 @@ say `origin/<default>` below.
 Generates a comprehensive engineering retrospective analyzing commit history, work patterns, and code quality metrics. Team-aware: identifies the user running the command, then analyzes every contributor with per-person praise and growth opportunities. Designed for a senior IC/CTO-level builder using Codex as a force multiplier.
 
 ## User-invocable
+
 When the user types `/retro`, run this skill.
 
 ## Arguments
+
 - `/retro` — default: last 7 days
 - `/retro 24h` — last 24 hours
 - `/retro 14d` — last 14 days
@@ -246,6 +259,7 @@ Parse the argument to determine the time window. Default to 7 days if no argumen
 **Midnight-aligned windows:** For day (`d`) and week (`w`) units, compute an absolute start date at local midnight, not a relative string. For example, if today is 2026-03-18 and the window is 7 days: the start date is 2026-03-11. Use `--since="2026-03-11T00:00:00"` for git log queries — the explicit `T00:00:00` suffix ensures git starts from midnight. Without it, git uses the current wall-clock time (e.g., `--since="2026-03-11"` at 11pm means 11pm, not midnight). For week units, multiply by 7 to get days (e.g., `2w` = 14 days back). For hour (`h`) units, use `--since="N hours ago"` since midnight alignment does not apply to sub-day windows.
 
 **Argument validation:** If the argument doesn't match a number followed by `d`, `h`, or `w`, the word `compare`, or `compare` followed by a number and `d`/`h`/`w`, show this usage and stop:
+
 ```
 Usage: /retro [window]
   /retro              — last 7 days (default)
@@ -259,6 +273,7 @@ Usage: /retro [window]
 ### Step 1: Gather Raw Data
 
 First, fetch origin and identify the current user:
+
 ```bash
 git fetch origin <default> --quiet
 # Identify who is running the retro
@@ -317,22 +332,22 @@ git log origin/<default> --since="<window>" --format="" --name-only | grep -E '\
 
 Calculate and present these metrics in a summary table:
 
-| Metric | Value |
-|--------|-------|
-| Commits to main | N |
-| Contributors | N |
-| PRs merged | N |
-| Total insertions | N |
-| Total deletions | N |
-| Net LOC added | N |
-| Test LOC (insertions) | N |
-| Test LOC ratio | N% |
-| Version range | vX.Y.Z.W → vX.Y.Z.W |
-| Active days | N |
-| Detected sessions | N |
-| Avg LOC/session-hour | N |
-| Greptile signal | N% (Y catches, Z FPs) |
-| Test Health | N total tests · M added this period · K regression tests |
+| Metric                | Value                                                    |
+| --------------------- | -------------------------------------------------------- |
+| Commits to main       | N                                                        |
+| Contributors          | N                                                        |
+| PRs merged            | N                                                        |
+| Total insertions      | N                                                        |
+| Total deletions       | N                                                        |
+| Net LOC added         | N                                                        |
+| Test LOC (insertions) | N                                                        |
+| Test LOC ratio        | N%                                                       |
+| Version range         | vX.Y.Z.W → vX.Y.Z.W                                      |
+| Active days           | N                                                        |
+| Detected sessions     | N                                                        |
+| Avg LOC/session-hour  | N                                                        |
+| Greptile signal       | N% (Y catches, Z FPs)                                    |
+| Test Health           | N total tests · M added this period · K regression tests |
 
 Then show a **per-author leaderboard** immediately below:
 
@@ -348,6 +363,7 @@ Sort by commits descending. The current user (from `git config user.name`) alway
 **Greptile signal (if history exists):** Read `~/.gstack/greptile-history.md` (fetched in Step 1, command 8). Filter entries within the retro time window by date. Count entries by type: `fix`, `fp`, `already-fixed`. Compute signal ratio: `(fix + already-fixed) / (fix + already-fixed + fp)`. If no entries exist in the window or the file doesn't exist, skip the Greptile metric row. Skip unparseable lines silently.
 
 **Backlog Health (if TODOS.md exists):** Read `TODOS.md` (fetched in Step 1, command 9). Compute:
+
 - Total open TODOs (exclude items in `## Completed` section)
 - P0/P1 count (critical/urgent items)
 - P2 count (important items)
@@ -355,6 +371,7 @@ Sort by commits descending. The current user (from `git config user.name`) alway
 - Items added this period (cross-reference git log for commits that modified TODOS.md within the window)
 
 Include in the metrics table:
+
 ```
 | Backlog Health | N open (X P0/P1, Y P2) · Z completed this period |
 ```
@@ -381,6 +398,7 @@ Hour  Commits  ████████████████
 ```
 
 Identify and call out:
+
 - Peak hours
 - Dead zones
 - Whether pattern is bimodal (morning/evening) or continuous
@@ -389,16 +407,19 @@ Identify and call out:
 ### Step 4: Work Session Detection
 
 Detect sessions using **45-minute gap** threshold between consecutive commits. For each session report:
+
 - Start/end time (Pacific)
 - Number of commits
 - Duration in minutes
 
 Classify sessions:
+
 - **Deep sessions** (50+ min)
 - **Medium sessions** (20-50 min)
 - **Micro sessions** (<20 min, typically single-commit fire-and-forget)
 
 Calculate:
+
 - Total active coding time (sum of session durations)
 - Average session length
 - LOC per hour of active time
@@ -418,6 +439,7 @@ Flag if fix ratio exceeds 50% — this signals a "ship fast, fix fast" pattern t
 ### Step 6: Hotspot Analysis
 
 Show top 10 most-changed files. Flag:
+
 - Files changed 5+ times (churn hotspots)
 - Test files vs production files in the hotspot list
 - VERSION/CHANGELOG frequency (version discipline indicator)
@@ -425,6 +447,7 @@ Show top 10 most-changed files. Flag:
 ### Step 7: PR Size Distribution
 
 From commit diffs, estimate PR sizes and bucket them:
+
 - **Small** (<100 LOC)
 - **Medium** (100-500 LOC)
 - **Large** (500-1500 LOC)
@@ -435,6 +458,7 @@ From commit diffs, estimate PR sizes and bucket them:
 **Focus score:** Calculate the percentage of commits touching the single most-changed top-level directory (e.g., `app/services/`, `app/views/`). Higher score = deeper focused work. Lower score = scattered context-switching. Report as: "Focus score: 62% (app/services/)"
 
 **Ship of the week:** Auto-identify the single highest-LOC PR in the window. Highlight it:
+
 - PR number and title
 - LOC changed
 - Why it matters (infer from commit messages and files touched)
@@ -464,6 +488,7 @@ For each contributor (including the current user), compute:
 ### Step 10: Week-over-Week Trends (if window >= 14d)
 
 If the time window is 14 days or more, split into weekly buckets and show trends:
+
 - Commits per week (total and per-author)
 - LOC per week
 - Test ratio per week
@@ -483,6 +508,7 @@ git log origin/<default> --author="<user_name>" --format="%ad" --date=format:"%Y
 ```
 
 Count backward from today — how many consecutive days have at least one commit? This queries the full history so streaks of any length are reported accurately. Display both:
+
 - "Team shipping streak: 47 consecutive days"
 - "Your shipping streak: 32 consecutive days"
 
@@ -495,6 +521,7 @@ ls -t .context/retros/*.json 2>/dev/null
 ```
 
 **If prior retros exist:** Load the most recent one using the Read tool. Calculate deltas for key metrics and include a **Trends vs Last Retro** section:
+
 ```
                     Last        Now         Delta
 Test ratio:         22%    →    41%         ↑19pp
@@ -516,6 +543,7 @@ mkdir -p .context/retros
 ```
 
 Determine the next sequence number for today (substitute the actual date for `$(date +%Y-%m-%d)`):
+
 ```bash
 # Count existing retros for today to get next sequence number
 today=$(date +%Y-%m-%d)
@@ -525,6 +553,7 @@ next=$((existing + 1))
 ```
 
 Use the Write tool to save the JSON file with this schema:
+
 ```json
 {
   "date": "2026-03-08",
@@ -543,14 +572,26 @@ Use the Write tool to save the JSON file with this schema:
     "deep_sessions": 5,
     "avg_session_minutes": 42,
     "loc_per_session_hour": 350,
-    "feat_pct": 0.40,
-    "fix_pct": 0.30,
+    "feat_pct": 0.4,
+    "fix_pct": 0.3,
     "peak_hour": 22,
     "ai_assisted_commits": 32
   },
   "authors": {
-    "Garry Tan": { "commits": 32, "insertions": 2400, "deletions": 300, "test_ratio": 0.41, "top_area": "browse/" },
-    "Alice": { "commits": 12, "insertions": 800, "deletions": 150, "test_ratio": 0.35, "top_area": "app/services/" }
+    "Garry Tan": {
+      "commits": 32,
+      "insertions": 2400,
+      "deletions": 300,
+      "test_ratio": 0.41,
+      "top_area": "browse/"
+    },
+    "Alice": {
+      "commits": 12,
+      "insertions": 800,
+      "deletions": 150,
+      "test_ratio": 0.35,
+      "top_area": "app/services/"
+    }
   },
   "version_range": ["1.16.0.0", "1.16.1.0"],
   "streak_days": 47,
@@ -567,6 +608,7 @@ Use the Write tool to save the JSON file with this schema:
 **Note:** Only include the `greptile` field if `~/.gstack/greptile-history.md` exists and has entries within the time window. Only include the `backlog` field if `TODOS.md` exists. Only include the `test_health` field if test files were found (command 10 returns > 0). If any has no data, omit the field entirely.
 
 Include test health data in the JSON when test files exist:
+
 ```json
   "test_health": {
     "total_test_files": 47,
@@ -577,6 +619,7 @@ Include test health data in the JSON when test files exist:
 ```
 
 Include backlog data in the JSON when TODOS.md exists:
+
 ```json
   "backlog": {
     "total_open": 28,
@@ -594,6 +637,7 @@ Structure the output as:
 ---
 
 **Tweetable summary** (first line, before everything else):
+
 ```
 Week of Mar 1: 47 commits (3 contributors), 3.2k LOC, 38% tests, 12 PRs, peak: 10pm | Streak: 47d
 ```
@@ -601,36 +645,44 @@ Week of Mar 1: 47 commits (3 contributors), 3.2k LOC, 38% tests, 12 PRs, peak: 1
 ## Engineering Retro: [date range]
 
 ### Summary Table
+
 (from Step 2)
 
 ### Trends vs Last Retro
+
 (from Step 11, loaded before save — skip if first retro)
 
 ### Time & Session Patterns
+
 (from Steps 3-4)
 
 Narrative interpreting what the team-wide patterns mean:
+
 - When the most productive hours are and what drives them
 - Whether sessions are getting longer or shorter over time
 - Estimated hours per day of active coding (team aggregate)
 - Notable patterns: do team members code at the same time or in shifts?
 
 ### Shipping Velocity
+
 (from Steps 5-7)
 
 Narrative covering:
+
 - Commit type mix and what it reveals
 - PR size discipline (are PRs staying small?)
 - Fix-chain detection (sequences of fix commits on the same subsystem)
 - Version bump discipline
 
 ### Code Quality Signals
+
 - Test LOC ratio trend
 - Hotspot analysis (are the same files churning?)
 - Any XL PRs that should have been split
 - Greptile signal ratio and trend (if history exists): "Greptile: X% signal (Y valid catches, Z false positives)"
 
 ### Test Health
+
 - Total test files: N (from command 10)
 - Tests added this period: M (from command 12 — test files changed)
 - Regression test commits: list `test(qa):` and `test(design):` and `test: coverage` commits from command 11
@@ -638,14 +690,18 @@ Narrative covering:
 - If test ratio < 20%: flag as growth area — "100% test coverage is the goal. Tests make vibe coding safe."
 
 ### Focus & Highlights
+
 (from Step 8)
+
 - Focus score with interpretation
 - Ship of the week callout
 
 ### Your Week (personal deep-dive)
+
 (from Step 9, for the current user only)
 
 This is the section the user cares most about. Include:
+
 - Their personal commit count, LOC, test ratio
 - Their session patterns and peak hours
 - Their focus areas
@@ -654,11 +710,13 @@ This is the section the user cares most about. Include:
 - **Where to level up** (1-2 specific, actionable suggestions)
 
 ### Team Breakdown
+
 (from Step 9, for each teammate — skip if solo repo)
 
 For each teammate (sorted by commits descending), write a section:
 
 #### [Name]
+
 - **What they shipped**: 2-3 sentences on their contributions, areas of focus, and commit patterns
 - **Praise**: 1-2 specific things they did well, anchored in actual commits. Be genuine — what would you actually say in a 1:1? Examples:
   - "Cleaned up the entire auth module in 3 small, reviewable PRs — textbook decomposition"
@@ -672,18 +730,23 @@ For each teammate (sorted by commits descending), write a section:
 **AI collaboration note:** If many commits have `Co-Authored-By` AI trailers (e.g., Codex, Copilot), note the AI-assisted commit percentage as a team metric. Frame it neutrally — "N% of commits were AI-assisted" — without judgment.
 
 ### Top 3 Team Wins
+
 Identify the 3 highest-impact things shipped in the window across the whole team. For each:
+
 - What it was
 - Who shipped it
 - Why it matters (product/architecture impact)
 
 ### 3 Things to Improve
+
 Specific, actionable, anchored in actual commits. Mix personal and team-level suggestions. Phrase as "to get even better, the team could..."
 
 ### 3 Habits for Next Week
+
 Small, practical, realistic. Each must be something that takes <5 minutes to adopt. At least one should be team-oriented (e.g., "review each other's PRs same-day").
 
 ### Week-over-Week Trends
+
 (if applicable, from Step 10)
 
 ---

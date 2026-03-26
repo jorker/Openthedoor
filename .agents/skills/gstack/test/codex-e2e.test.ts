@@ -13,15 +13,25 @@
  * Skips gracefully when prerequisites are not met.
  */
 
-import { describe, test, expect, afterAll } from 'bun:test';
-import { runCodexSkill, parseCodexJSONL, installSkillToTempHome } from './helpers/codex-session-runner';
-import type { CodexResult } from './helpers/codex-session-runner';
-import { EvalCollector } from './helpers/eval-store';
-import type { EvalTestEntry } from './helpers/eval-store';
-import { selectTests, detectBaseBranch, getChangedFiles, E2E_TOUCHFILES, GLOBAL_TOUCHFILES } from './helpers/touchfiles';
 import * as fs from 'fs';
-import * as path from 'path';
 import * as os from 'os';
+import * as path from 'path';
+import { afterAll, describe, expect, test } from 'bun:test';
+
+import {
+  installSkillToTempHome,
+  parseCodexJSONL,
+  runCodexSkill,
+  type CodexResult,
+} from './helpers/codex-session-runner';
+import { EvalCollector, type EvalTestEntry } from './helpers/eval-store';
+import {
+  detectBaseBranch,
+  E2E_TOUCHFILES,
+  getChangedFiles,
+  GLOBAL_TOUCHFILES,
+  selectTests,
+} from './helpers/touchfiles';
 
 const ROOT = path.resolve(import.meta.dir, '..');
 
@@ -31,7 +41,9 @@ const CODEX_AVAILABLE = (() => {
   try {
     const result = Bun.spawnSync(['which', 'codex']);
     return result.exitCode === 0;
-  } catch { return false; }
+  } catch {
+    return false;
+  }
 })();
 
 const evalsEnabled = !!process.env.EVALS;
@@ -46,29 +58,44 @@ const describeCodex = SKIP ? describe.skip : describe;
 if (!evalsEnabled) {
   // Silent — same as Claude E2E tests, EVALS=1 required
 } else if (!CODEX_AVAILABLE) {
-  process.stderr.write('\nCodex E2E: SKIPPED — codex binary not found (install: npm i -g @openai/codex)\n');
+  process.stderr.write(
+    '\nCodex E2E: SKIPPED — codex binary not found (install: npm i -g @openai/codex)\n'
+  );
 }
 
 // --- Diff-based test selection ---
 
 // Codex E2E touchfiles — keyed by test name, same pattern as E2E_TOUCHFILES
 const CODEX_E2E_TOUCHFILES: Record<string, string[]> = {
-  'codex-discover-skill':    ['codex/**', '.agents/skills/**', 'test/helpers/codex-session-runner.ts'],
-  'codex-review-findings':   ['review/**', '.agents/skills/gstack-review/**', 'codex/**', 'test/helpers/codex-session-runner.ts'],
+  'codex-discover-skill': [
+    'codex/**',
+    '.agents/skills/**',
+    'test/helpers/codex-session-runner.ts',
+  ],
+  'codex-review-findings': [
+    'review/**',
+    '.agents/skills/gstack-review/**',
+    'codex/**',
+    'test/helpers/codex-session-runner.ts',
+  ],
 };
 
 let selectedTests: string[] | null = null; // null = run all
 
 if (evalsEnabled && !process.env.EVALS_ALL) {
-  const baseBranch = process.env.EVALS_BASE
-    || detectBaseBranch(ROOT)
-    || 'main';
+  const baseBranch = process.env.EVALS_BASE || detectBaseBranch(ROOT) || 'main';
   const changedFiles = getChangedFiles(baseBranch, ROOT);
 
   if (changedFiles.length > 0) {
-    const selection = selectTests(changedFiles, CODEX_E2E_TOUCHFILES, GLOBAL_TOUCHFILES);
+    const selection = selectTests(
+      changedFiles,
+      CODEX_E2E_TOUCHFILES,
+      GLOBAL_TOUCHFILES
+    );
     selectedTests = selection.selected;
-    process.stderr.write(`\nCodex E2E selection (${selection.reason}): ${selection.selected.length}/${Object.keys(CODEX_E2E_TOUCHFILES).length} tests\n`);
+    process.stderr.write(
+      `\nCodex E2E selection (${selection.reason}): ${selection.selected.length}/${Object.keys(CODEX_E2E_TOUCHFILES).length} tests\n`
+    );
     if (selection.skipped.length > 0) {
       process.stderr.write(`  Skipped: ${selection.skipped.join(', ')}\n`);
     }
@@ -78,14 +105,19 @@ if (evalsEnabled && !process.env.EVALS_ALL) {
 }
 
 /** Skip an individual test if not selected by diff-based selection. */
-function testIfSelected(testName: string, fn: () => Promise<void>, timeout: number) {
+function testIfSelected(
+  testName: string,
+  fn: () => Promise<void>,
+  timeout: number
+) {
   const shouldRun = selectedTests === null || selectedTests.includes(testName);
   (shouldRun ? test : test.skip)(testName, fn, timeout);
 }
 
 // --- Eval result collector ---
 
-const evalCollector = evalsEnabled && !SKIP ? new EvalCollector('e2e-codex') : null;
+const evalCollector =
+  evalsEnabled && !SKIP ? new EvalCollector('e2e-codex') : null;
 
 /** DRY helper to record a Codex E2E test result into the eval collector. */
 function recordCodexE2E(name: string, result: CodexResult, passed: boolean) {
@@ -98,14 +130,17 @@ function recordCodexE2E(name: string, result: CodexResult, passed: boolean) {
     cost_usd: 0, // Codex doesn't report cost in the same way; tokens are tracked
     output: result.output?.slice(0, 2000),
     turns_used: result.toolCalls.length, // approximate: tool calls as turns
-    exit_reason: result.exitCode === 0 ? 'success' : `exit_code_${result.exitCode}`,
+    exit_reason:
+      result.exitCode === 0 ? 'success' : `exit_code_${result.exitCode}`,
   });
 }
 
 /** Print cost summary after a Codex E2E test. */
 function logCodexCost(label: string, result: CodexResult) {
   const durationSec = Math.round(result.durationMs / 1000);
-  console.log(`${label}: ${result.tokens} tokens, ${result.toolCalls.length} tool calls, ${durationSec}s`);
+  console.log(
+    `${label}: ${result.tokens} tokens, ${result.toolCalls.length} tool calls, ${durationSec}s`
+  );
 }
 
 // Finalize eval results on exit
@@ -118,68 +153,79 @@ afterAll(async () => {
 // --- Tests ---
 
 describeCodex('Codex E2E', () => {
+  testIfSelected(
+    'codex-discover-skill',
+    async () => {
+      // Install gstack-review skill to a temp HOME and ask Codex to list skills
+      const skillDir = path.join(ROOT, '.agents', 'skills', 'gstack-review');
 
-  testIfSelected('codex-discover-skill', async () => {
-    // Install gstack-review skill to a temp HOME and ask Codex to list skills
-    const skillDir = path.join(ROOT, '.agents', 'skills', 'gstack-review');
+      const result = await runCodexSkill({
+        skillDir,
+        prompt:
+          'List any skills or instructions you have available. Just list the names.',
+        timeoutMs: 60_000,
+        cwd: ROOT,
+        skillName: 'gstack-review',
+      });
 
-    const result = await runCodexSkill({
-      skillDir,
-      prompt: 'List any skills or instructions you have available. Just list the names.',
-      timeoutMs: 60_000,
-      cwd: ROOT,
-      skillName: 'gstack-review',
-    });
+      logCodexCost('codex-discover-skill', result);
 
-    logCodexCost('codex-discover-skill', result);
+      // Codex should have produced some output
+      const passed = result.exitCode === 0 && result.output.length > 0;
+      recordCodexE2E('codex-discover-skill', result, passed);
 
-    // Codex should have produced some output
-    const passed = result.exitCode === 0 && result.output.length > 0;
-    recordCodexE2E('codex-discover-skill', result, passed);
+      expect(result.exitCode).toBe(0);
+      expect(result.output.length).toBeGreaterThan(0);
+      // The output should reference the skill name in some form
+      const outputLower = result.output.toLowerCase();
+      expect(
+        outputLower.includes('review') ||
+          outputLower.includes('gstack') ||
+          outputLower.includes('skill')
+      ).toBe(true);
+    },
+    120_000
+  );
 
-    expect(result.exitCode).toBe(0);
-    expect(result.output.length).toBeGreaterThan(0);
-    // The output should reference the skill name in some form
-    const outputLower = result.output.toLowerCase();
-    expect(
-      outputLower.includes('review') || outputLower.includes('gstack') || outputLower.includes('skill'),
-    ).toBe(true);
-  }, 120_000);
+  testIfSelected(
+    'codex-review-findings',
+    async () => {
+      // Install gstack-review skill and ask Codex to review the current repo
+      const skillDir = path.join(ROOT, '.agents', 'skills', 'gstack-review');
 
-  testIfSelected('codex-review-findings', async () => {
-    // Install gstack-review skill and ask Codex to review the current repo
-    const skillDir = path.join(ROOT, '.agents', 'skills', 'gstack-review');
+      const result = await runCodexSkill({
+        skillDir,
+        prompt:
+          'Run the gstack-review skill on this repository. Review the current branch diff and report your findings.',
+        timeoutMs: 540_000,
+        cwd: ROOT,
+        skillName: 'gstack-review',
+      });
 
-    const result = await runCodexSkill({
-      skillDir,
-      prompt: 'Run the gstack-review skill on this repository. Review the current branch diff and report your findings.',
-      timeoutMs: 540_000,
-      cwd: ROOT,
-      skillName: 'gstack-review',
-    });
+      logCodexCost('codex-review-findings', result);
 
-    logCodexCost('codex-review-findings', result);
+      // Should produce structured review-like output
+      const output = result.output;
+      const passed = result.exitCode === 0 && output.length > 50;
+      recordCodexE2E('codex-review-findings', result, passed);
 
-    // Should produce structured review-like output
-    const output = result.output;
-    const passed = result.exitCode === 0 && output.length > 50;
-    recordCodexE2E('codex-review-findings', result, passed);
+      expect(result.exitCode).toBe(0);
+      expect(output.length).toBeGreaterThan(50);
 
-    expect(result.exitCode).toBe(0);
-    expect(output.length).toBeGreaterThan(50);
-
-    // Review output should contain some review-like content
-    const outputLower = output.toLowerCase();
-    const hasReviewContent =
-      outputLower.includes('finding') ||
-      outputLower.includes('issue') ||
-      outputLower.includes('review') ||
-      outputLower.includes('change') ||
-      outputLower.includes('diff') ||
-      outputLower.includes('clean') ||
-      outputLower.includes('no issues') ||
-      outputLower.includes('p1') ||
-      outputLower.includes('p2');
-    expect(hasReviewContent).toBe(true);
-  }, 600_000);
+      // Review output should contain some review-like content
+      const outputLower = output.toLowerCase();
+      const hasReviewContent =
+        outputLower.includes('finding') ||
+        outputLower.includes('issue') ||
+        outputLower.includes('review') ||
+        outputLower.includes('change') ||
+        outputLower.includes('diff') ||
+        outputLower.includes('clean') ||
+        outputLower.includes('no issues') ||
+        outputLower.includes('p1') ||
+        outputLower.includes('p2');
+      expect(hasReviewContent).toBe(true);
+    },
+    600_000
+  );
 });
