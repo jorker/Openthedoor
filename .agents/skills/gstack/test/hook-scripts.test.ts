@@ -1,18 +1,14 @@
+import { describe, test, expect } from 'bun:test';
 import { spawnSync } from 'child_process';
+import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
-import * as path from 'path';
-import { describe, expect, test } from 'bun:test';
 
 const ROOT = path.resolve(import.meta.dir, '..');
 const CAREFUL_SCRIPT = path.join(ROOT, 'careful', 'bin', 'check-careful.sh');
 const FREEZE_SCRIPT = path.join(ROOT, 'freeze', 'bin', 'check-freeze.sh');
 
-function runHook(
-  scriptPath: string,
-  input: object,
-  env?: Record<string, string>
-): { exitCode: number; output: any; raw: string } {
+function runHook(scriptPath: string, input: object, env?: Record<string, string>): { exitCode: number; output: any; raw: string } {
   const result = spawnSync('bash', [scriptPath], {
     input: JSON.stringify(input),
     stdio: ['pipe', 'pipe', 'pipe'],
@@ -27,11 +23,7 @@ function runHook(
   return { exitCode: result.status ?? 1, output, raw };
 }
 
-function runHookRaw(
-  scriptPath: string,
-  rawInput: string,
-  env?: Record<string, string>
-): { exitCode: number; output: any; raw: string } {
+function runHookRaw(scriptPath: string, rawInput: string, env?: Record<string, string>): { exitCode: number; output: any; raw: string } {
   const result = spawnSync('bash', [scriptPath], {
     input: rawInput,
     stdio: ['pipe', 'pipe', 'pipe'],
@@ -55,9 +47,7 @@ function freezeInput(filePath: string) {
 }
 
 function withFreezeDir(freezePath: string, fn: (stateDir: string) => void) {
-  const stateDir = fs.mkdtempSync(
-    path.join(os.tmpdir(), 'gstack-freeze-test-')
-  );
+  const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-freeze-test-'));
   fs.writeFileSync(path.join(stateDir, 'freeze-dir.txt'), freezePath);
   try {
     fn(stateDir);
@@ -69,10 +59,7 @@ function withFreezeDir(freezePath: string, fn: (stateDir: string) => void) {
 // Detect whether the safe-rm-targets regex works on this platform.
 // macOS sed -E does not support \s, so the safe exception check fails there.
 function detectSafeRmWorks(): boolean {
-  const { output } = runHook(
-    CAREFUL_SCRIPT,
-    carefulInput('rm -rf node_modules')
-  );
+  const { output } = runHook(CAREFUL_SCRIPT, carefulInput('rm -rf node_modules'));
   return output.permissionDecision === undefined;
 }
 
@@ -80,34 +67,26 @@ function detectSafeRmWorks(): boolean {
 // check-careful.sh tests
 // ============================================================
 describe('check-careful.sh', () => {
+
   // --- Destructive rm commands ---
 
   describe('rm -rf / rm -r', () => {
     test('rm -rf /var/data warns with recursive delete message', () => {
-      const { exitCode, output } = runHook(
-        CAREFUL_SCRIPT,
-        carefulInput('rm -rf /var/data')
-      );
+      const { exitCode, output } = runHook(CAREFUL_SCRIPT, carefulInput('rm -rf /var/data'));
       expect(exitCode).toBe(0);
       expect(output.permissionDecision).toBe('ask');
       expect(output.message).toContain('recursive delete');
     });
 
     test('rm -r ./some-dir warns', () => {
-      const { exitCode, output } = runHook(
-        CAREFUL_SCRIPT,
-        carefulInput('rm -r ./some-dir')
-      );
+      const { exitCode, output } = runHook(CAREFUL_SCRIPT, carefulInput('rm -r ./some-dir'));
       expect(exitCode).toBe(0);
       expect(output.permissionDecision).toBe('ask');
       expect(output.message).toContain('recursive delete');
     });
 
     test('rm -rf node_modules allows (safe exception)', () => {
-      const { exitCode, output } = runHook(
-        CAREFUL_SCRIPT,
-        carefulInput('rm -rf node_modules')
-      );
+      const { exitCode, output } = runHook(CAREFUL_SCRIPT, carefulInput('rm -rf node_modules'));
       expect(exitCode).toBe(0);
       if (detectSafeRmWorks()) {
         // GNU sed: safe exception triggers, allows through
@@ -120,10 +99,7 @@ describe('check-careful.sh', () => {
     });
 
     test('rm -rf .next dist allows (multiple safe targets)', () => {
-      const { exitCode, output } = runHook(
-        CAREFUL_SCRIPT,
-        carefulInput('rm -rf .next dist')
-      );
+      const { exitCode, output } = runHook(CAREFUL_SCRIPT, carefulInput('rm -rf .next dist'));
       expect(exitCode).toBe(0);
       if (detectSafeRmWorks()) {
         expect(output.permissionDecision).toBeUndefined();
@@ -133,10 +109,7 @@ describe('check-careful.sh', () => {
     });
 
     test('rm -rf node_modules /var/data warns (mixed safe+unsafe)', () => {
-      const { exitCode, output } = runHook(
-        CAREFUL_SCRIPT,
-        carefulInput('rm -rf node_modules /var/data')
-      );
+      const { exitCode, output } = runHook(CAREFUL_SCRIPT, carefulInput('rm -rf node_modules /var/data'));
       expect(exitCode).toBe(0);
       expect(output.permissionDecision).toBe('ask');
       expect(output.message).toContain('recursive delete');
@@ -151,30 +124,21 @@ describe('check-careful.sh', () => {
 
   describe('SQL destructive commands', () => {
     test('psql DROP TABLE warns with DROP in message', () => {
-      const { exitCode, output } = runHook(
-        CAREFUL_SCRIPT,
-        carefulInput('psql -c DROP TABLE users;')
-      );
+      const { exitCode, output } = runHook(CAREFUL_SCRIPT, carefulInput('psql -c DROP TABLE users;'));
       expect(exitCode).toBe(0);
       expect(output.permissionDecision).toBe('ask');
       expect(output.message).toContain('DROP');
     });
 
     test('mysql drop database warns (case insensitive)', () => {
-      const { exitCode, output } = runHook(
-        CAREFUL_SCRIPT,
-        carefulInput('mysql -e drop database mydb')
-      );
+      const { exitCode, output } = runHook(CAREFUL_SCRIPT, carefulInput('mysql -e drop database mydb'));
       expect(exitCode).toBe(0);
       expect(output.permissionDecision).toBe('ask');
       expect(output.message.toLowerCase()).toContain('drop');
     });
 
     test('psql TRUNCATE warns', () => {
-      const { exitCode, output } = runHook(
-        CAREFUL_SCRIPT,
-        carefulInput('psql -c TRUNCATE orders;')
-      );
+      const { exitCode, output } = runHook(CAREFUL_SCRIPT, carefulInput('psql -c TRUNCATE orders;'));
       expect(exitCode).toBe(0);
       expect(output.permissionDecision).toBe('ask');
       expect(output.message).toContain('TRUNCATE');
@@ -185,50 +149,35 @@ describe('check-careful.sh', () => {
 
   describe('git destructive commands', () => {
     test('git push --force warns with force-push', () => {
-      const { exitCode, output } = runHook(
-        CAREFUL_SCRIPT,
-        carefulInput('git push --force origin main')
-      );
+      const { exitCode, output } = runHook(CAREFUL_SCRIPT, carefulInput('git push --force origin main'));
       expect(exitCode).toBe(0);
       expect(output.permissionDecision).toBe('ask');
       expect(output.message).toContain('force-push');
     });
 
     test('git push -f warns', () => {
-      const { exitCode, output } = runHook(
-        CAREFUL_SCRIPT,
-        carefulInput('git push -f origin main')
-      );
+      const { exitCode, output } = runHook(CAREFUL_SCRIPT, carefulInput('git push -f origin main'));
       expect(exitCode).toBe(0);
       expect(output.permissionDecision).toBe('ask');
       expect(output.message).toContain('force-push');
     });
 
     test('git reset --hard warns with uncommitted', () => {
-      const { exitCode, output } = runHook(
-        CAREFUL_SCRIPT,
-        carefulInput('git reset --hard HEAD~3')
-      );
+      const { exitCode, output } = runHook(CAREFUL_SCRIPT, carefulInput('git reset --hard HEAD~3'));
       expect(exitCode).toBe(0);
       expect(output.permissionDecision).toBe('ask');
       expect(output.message).toContain('uncommitted');
     });
 
     test('git checkout . warns', () => {
-      const { exitCode, output } = runHook(
-        CAREFUL_SCRIPT,
-        carefulInput('git checkout .')
-      );
+      const { exitCode, output } = runHook(CAREFUL_SCRIPT, carefulInput('git checkout .'));
       expect(exitCode).toBe(0);
       expect(output.permissionDecision).toBe('ask');
       expect(output.message).toContain('uncommitted');
     });
 
     test('git restore . warns', () => {
-      const { exitCode, output } = runHook(
-        CAREFUL_SCRIPT,
-        carefulInput('git restore .')
-      );
+      const { exitCode, output } = runHook(CAREFUL_SCRIPT, carefulInput('git restore .'));
       expect(exitCode).toBe(0);
       expect(output.permissionDecision).toBe('ask');
       expect(output.message).toContain('uncommitted');
@@ -239,30 +188,21 @@ describe('check-careful.sh', () => {
 
   describe('container and infra commands', () => {
     test('kubectl delete warns with kubectl in message', () => {
-      const { exitCode, output } = runHook(
-        CAREFUL_SCRIPT,
-        carefulInput('kubectl delete pod my-pod')
-      );
+      const { exitCode, output } = runHook(CAREFUL_SCRIPT, carefulInput('kubectl delete pod my-pod'));
       expect(exitCode).toBe(0);
       expect(output.permissionDecision).toBe('ask');
       expect(output.message).toContain('kubectl');
     });
 
     test('docker rm -f warns', () => {
-      const { exitCode, output } = runHook(
-        CAREFUL_SCRIPT,
-        carefulInput('docker rm -f container123')
-      );
+      const { exitCode, output } = runHook(CAREFUL_SCRIPT, carefulInput('docker rm -f container123'));
       expect(exitCode).toBe(0);
       expect(output.permissionDecision).toBe('ask');
       expect(output.message).toContain('Docker');
     });
 
     test('docker system prune -a warns', () => {
-      const { exitCode, output } = runHook(
-        CAREFUL_SCRIPT,
-        carefulInput('docker system prune -a')
-      );
+      const { exitCode, output } = runHook(CAREFUL_SCRIPT, carefulInput('docker system prune -a'));
       expect(exitCode).toBe(0);
       expect(output.permissionDecision).toBe('ask');
       expect(output.message).toContain('Docker');
@@ -305,10 +245,7 @@ describe('check-careful.sh', () => {
     });
 
     test('malformed JSON input allows gracefully (exit 0, output {})', () => {
-      const { exitCode, raw } = runHookRaw(
-        CAREFUL_SCRIPT,
-        'this is not json at all{{{{'
-      );
+      const { exitCode, raw } = runHookRaw(CAREFUL_SCRIPT, 'this is not json at all{{{{');
       expect(exitCode).toBe(0);
       expect(raw).toBe('{}');
     });
@@ -331,13 +268,14 @@ describe('check-careful.sh', () => {
 // check-freeze.sh tests
 // ============================================================
 describe('check-freeze.sh', () => {
+
   describe('edits inside freeze boundary', () => {
     test('edit inside freeze boundary allows', () => {
       withFreezeDir('/Users/dev/project/src/', (stateDir) => {
         const { exitCode, output } = runHook(
           FREEZE_SCRIPT,
           freezeInput('/Users/dev/project/src/index.ts'),
-          { CLAUDE_PLUGIN_DATA: stateDir }
+          { CLAUDE_PLUGIN_DATA: stateDir },
         );
         expect(exitCode).toBe(0);
         expect(output.permissionDecision).toBeUndefined();
@@ -349,7 +287,7 @@ describe('check-freeze.sh', () => {
         const { exitCode, output } = runHook(
           FREEZE_SCRIPT,
           freezeInput('/Users/dev/project/src/components/Button.tsx'),
-          { CLAUDE_PLUGIN_DATA: stateDir }
+          { CLAUDE_PLUGIN_DATA: stateDir },
         );
         expect(exitCode).toBe(0);
         expect(output.permissionDecision).toBeUndefined();
@@ -363,7 +301,7 @@ describe('check-freeze.sh', () => {
         const { exitCode, output } = runHook(
           FREEZE_SCRIPT,
           freezeInput('/Users/dev/other-project/index.ts'),
-          { CLAUDE_PLUGIN_DATA: stateDir }
+          { CLAUDE_PLUGIN_DATA: stateDir },
         );
         expect(exitCode).toBe(0);
         expect(output.permissionDecision).toBe('deny');
@@ -377,7 +315,7 @@ describe('check-freeze.sh', () => {
         const { exitCode, output } = runHook(
           FREEZE_SCRIPT,
           freezeInput('/etc/hosts'),
-          { CLAUDE_PLUGIN_DATA: stateDir }
+          { CLAUDE_PLUGIN_DATA: stateDir },
         );
         expect(exitCode).toBe(0);
         expect(output.permissionDecision).toBe('deny');
@@ -393,7 +331,7 @@ describe('check-freeze.sh', () => {
         const { exitCode, output } = runHook(
           FREEZE_SCRIPT,
           freezeInput('/Users/dev/project/src-old/index.ts'),
-          { CLAUDE_PLUGIN_DATA: stateDir }
+          { CLAUDE_PLUGIN_DATA: stateDir },
         );
         expect(exitCode).toBe(0);
         expect(output.permissionDecision).toBe('deny');
@@ -404,14 +342,12 @@ describe('check-freeze.sh', () => {
 
   describe('no freeze file exists', () => {
     test('allows everything when no freeze file present', () => {
-      const stateDir = fs.mkdtempSync(
-        path.join(os.tmpdir(), 'gstack-freeze-test-')
-      );
+      const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-freeze-test-'));
       try {
         const { exitCode, output } = runHook(
           FREEZE_SCRIPT,
           freezeInput('/anywhere/at/all.ts'),
-          { CLAUDE_PLUGIN_DATA: stateDir }
+          { CLAUDE_PLUGIN_DATA: stateDir },
         );
         expect(exitCode).toBe(0);
         expect(output.permissionDecision).toBeUndefined();
@@ -427,7 +363,7 @@ describe('check-freeze.sh', () => {
         const { exitCode, output } = runHook(
           FREEZE_SCRIPT,
           { tool_input: {} },
-          { CLAUDE_PLUGIN_DATA: stateDir }
+          { CLAUDE_PLUGIN_DATA: stateDir },
         );
         expect(exitCode).toBe(0);
         expect(output.permissionDecision).toBeUndefined();

@@ -9,7 +9,6 @@ description: |
   Proactively suggest when the user has a plan with UI/UX components that
   should be reviewed before implementation.
 ---
-
 <!-- AUTO-GENERATED from SKILL.md.tmpl — do not edit directly -->
 <!-- Regenerate: bun run gen:skill-docs -->
 
@@ -66,7 +65,6 @@ ask the user about telemetry. Use AskUserQuestion:
 > Change anytime with `gstack-config set telemetry off`.
 
 Options:
-
 - A) Help gstack get better! (recommended)
 - B) No thanks
 
@@ -74,11 +72,10 @@ If A: run `~/.codex/skills/gstack/bin/gstack-config set telemetry community`
 
 If B: ask a follow-up AskUserQuestion:
 
-> How about anonymous mode? We just learn that _someone_ used gstack — no unique ID,
+> How about anonymous mode? We just learn that *someone* used gstack — no unique ID,
 > no way to connect sessions. Just a counter that helps us know if anyone's out there.
 
 Options:
-
 - A) Sure, anonymous is fine
 - B) No thanks, fully off
 
@@ -86,7 +83,6 @@ If B→A: run `~/.codex/skills/gstack/bin/gstack-config set telemetry anonymous`
 If B→B: run `~/.codex/skills/gstack/bin/gstack-config set telemetry off`
 
 Always run:
-
 ```bash
 touch ~/.gstack/.telemetry-prompted
 ```
@@ -96,7 +92,6 @@ This only happens once. If `TEL_PROMPTED` is `yes`, skip this entirely.
 ## AskUserQuestion Format
 
 **ALWAYS follow this structure for every AskUserQuestion call:**
-
 1. **Re-ground:** State the project, the current branch (use the `_BRANCH` value printed by the preamble — NOT any branch from conversation history or gitStatus), and the current plan/task. (1-2 sentences)
 2. **Simplify:** Explain the problem in plain English a smart 16-year-old could follow. No raw function names, no internal jargon, no implementation details. Use concrete examples and analogies. Say what it DOES, not what it's called.
 3. **Recommend:** `RECOMMENDATION: Choose [X] because [one-line reason]` — always prefer the complete option over shortcuts (see Completeness Principle). Include `Completeness: X/10` for each option. Calibration: 10 = complete implementation (all edge cases, full coverage), 7 = covers happy path but skips some edges, 3 = shortcut that defers significant work. If both options are 8+, pick the higher; if one is ≤5, flag it.
@@ -114,19 +109,18 @@ AI-assisted coding makes the marginal cost of completeness near-zero. When you p
 - **Lake vs. ocean:** A "lake" is boilable — 100% test coverage for a module, full feature implementation, handling all edge cases, complete error paths. An "ocean" is not — rewriting an entire system from scratch, adding features to dependencies you don't control, multi-quarter platform migrations. Recommend boiling lakes. Flag oceans as out of scope.
 - **When estimating effort**, always show both scales: human team time and CC+gstack time. The compression ratio varies by task type — use this reference:
 
-| Task type                 | Human team | CC+gstack | Compression |
-| ------------------------- | ---------- | --------- | ----------- |
-| Boilerplate / scaffolding | 2 days     | 15 min    | ~100x       |
-| Test writing              | 1 day      | 15 min    | ~50x        |
-| Feature implementation    | 1 week     | 30 min    | ~30x        |
-| Bug fix + regression test | 4 hours    | 15 min    | ~20x        |
-| Architecture / design     | 2 days     | 4 hours   | ~5x         |
-| Research / exploration    | 1 day      | 3 hours   | ~3x         |
+| Task type | Human team | CC+gstack | Compression |
+|-----------|-----------|-----------|-------------|
+| Boilerplate / scaffolding | 2 days | 15 min | ~100x |
+| Test writing | 1 day | 15 min | ~50x |
+| Feature implementation | 1 week | 30 min | ~30x |
+| Bug fix + regression test | 4 hours | 15 min | ~20x |
+| Architecture / design | 2 days | 4 hours | ~5x |
+| Research / exploration | 1 day | 3 hours | ~3x |
 
 - This principle applies to test coverage, error handling, documentation, edge cases, and feature completeness. Don't skip the last 10% to "save time" — with AI, that 10% costs seconds.
 
 **Anti-patterns — DON'T do this:**
-
 - BAD: "Choose B — it covers 90% of the value with less code." (If A is only 70 lines more, choose A.)
 - BAD: "We can skip edge case handling to save time." (Edge case handling costs minutes with CC.)
 - BAD: "Let's defer test coverage to a follow-up PR." (Tests are the cheapest lake to boil.)
@@ -158,9 +152,7 @@ Hey gstack team — ran into this while using /{skill-name}:
 
 ## Raw output
 ```
-
 {paste the actual error or unexpected output here}
-
 ```
 
 ## What would make this a 10
@@ -174,7 +166,6 @@ Slug: lowercase, hyphens, max 60 chars (e.g. `browse-js-no-await`). Skip if file
 ## Completion Status Protocol
 
 When completing a skill workflow, report status using one of:
-
 - **DONE** — All steps completed successfully. Evidence provided for each claim.
 - **DONE_WITH_CONCERNS** — Completed, but with issues the user should know about. List each concern.
 - **BLOCKED** — Cannot proceed. State what is blocking and what was tried.
@@ -185,13 +176,11 @@ When completing a skill workflow, report status using one of:
 It is always OK to stop and say "this is too hard for me" or "I'm not confident in this result."
 
 Bad work is worse than no work. You will not be penalized for escalating.
-
 - If you have attempted a task 3 times without success, STOP and escalate.
 - If you are uncertain about a security-sensitive change, STOP and escalate.
 - If the scope of work exceeds what you can verify, STOP and escalate.
 
 Escalation format:
-
 ```
 STATUS: BLOCKED | NEEDS_CONTEXT
 REASON: [1-2 sentences]
@@ -287,7 +276,7 @@ These aren't a checklist — they're how you see. The perceptual instincts that 
 5. **The question reflex** — First instinct is questions, not opinions. "Who is this for? What did they try before this?"
 6. **Edge case paranoia** — What if the name is 47 chars? Zero results? Network fails? Colorblind? RTL language?
 7. **The "Would I notice?" test** — Invisible = perfect. The highest compliment is not noticing the design.
-8. **Principled taste** — "This feels wrong" is traceable to a broken principle. Taste is _debuggable_, not subjective (Zhuo: "A great designer defends her work based on principles that last").
+8. **Principled taste** — "This feels wrong" is traceable to a broken principle. Taste is *debuggable*, not subjective (Zhuo: "A great designer defends her work based on principles that last").
 9. **Subtraction default** — "As little design as possible" (Rams). "Subtract the obvious, add the meaningful" (Maeda).
 10. **Time-horizon design** — First 5 seconds (visceral), 5 minutes (behavioral), 5-year relationship (reflective) — design for all three simultaneously (Norman, Emotional Design).
 11. **Design for trust** — Every design decision either builds or erodes trust. Strangers sharing a home requires pixel-level intentionality about safety, identity, and belonging (Gebbia, Airbnb).
@@ -312,25 +301,21 @@ git diff <base> --stat
 ```
 
 Then read:
-
 - The plan file (current plan or branch diff)
 - AGENTS.md — project conventions
 - DESIGN.md — if it exists, ALL design decisions calibrate against it
 - TODOS.md — any design-related TODOs this plan touches
 
 Map:
-
-- What is the UI scope of this plan? (pages, components, interactions)
-- Does a DESIGN.md exist? If not, flag as a gap.
-- Are there existing design patterns in the codebase to align with?
-- What prior design reviews exist? (check reviews.jsonl)
+* What is the UI scope of this plan? (pages, components, interactions)
+* Does a DESIGN.md exist? If not, flag as a gap.
+* Are there existing design patterns in the codebase to align with?
+* What prior design reviews exist? (check reviews.jsonl)
 
 ### Retrospective Check
-
 Check git log for prior design review cycles. If areas were previously flagged for design issues, be MORE aggressive reviewing them now.
 
 ### UI Scope Detection
-
 Analyze the plan. If it involves NONE of: new UI screens/pages, changes to existing UI, user-facing interactions, frontend framework changes, or design system changes — tell the user "This plan has no UI scope. A design review isn't applicable." and exit early. Don't force design review on a backend change.
 
 Report findings before proceeding to Step 0.
@@ -338,25 +323,20 @@ Report findings before proceeding to Step 0.
 ## Step 0: Design Scope Assessment
 
 ### 0A. Initial Design Rating
-
 Rate the plan's overall design completeness 0-10.
-
 - "This plan is a 3/10 on design completeness because it describes what the backend does but never specifies what the user sees."
 - "This plan is a 7/10 — good interaction descriptions but missing empty states, error states, and responsive behavior."
 
 Explain what a 10 looks like for THIS plan.
 
 ### 0B. DESIGN.md Status
-
 - If DESIGN.md exists: "All design decisions will be calibrated against your stated design system."
 - If no DESIGN.md: "No design system found. Recommend running /design-consultation first. Proceeding with universal design principles."
 
 ### 0C. Existing Design Leverage
-
 What existing UI patterns, components, or design decisions in the codebase should this plan reuse? Don't reinvent what already works.
 
 ### 0D. Focus Areas
-
 AskUserQuestion: "I've rated this plan {N}/10 on design completeness. The biggest gaps are {X, Y, Z}. Want me to review all 7 dimensions, or focus on specific areas?"
 
 **STOP.** Do NOT proceed until user responds.
@@ -366,7 +346,6 @@ AskUserQuestion: "I've rated this plan {N}/10 on design completeness. The bigges
 For each design section, rate the plan 0-10 on that dimension. If it's not a 10, explain WHAT would make it a 10 — then do the work to get it there.
 
 Pattern:
-
 1. Rate: "Information Architecture: 4/10"
 2. Gap: "It's a 4 because the plan doesn't define content hierarchy. A 10 would have clear primary/secondary/tertiary for every screen."
 3. Fix: Edit the plan to add what's missing
@@ -379,69 +358,56 @@ Re-run loop: invoke /plan-design-review again → re-rate → sections at 8+ get
 ## Review Sections (7 passes, after scope is agreed)
 
 ### Pass 1: Information Architecture
-
 Rate 0-10: Does the plan define what the user sees first, second, third?
 FIX TO 10: Add information hierarchy to the plan. Include ASCII diagram of screen/page structure and navigation flow. Apply "constraint worship" — if you can only show 3 things, which 3?
 **STOP.** AskUserQuestion once per issue. Do NOT batch. Recommend + WHY. If no issues, say so and move on. Do NOT proceed until user responds.
 
 ### Pass 2: Interaction State Coverage
-
 Rate 0-10: Does the plan specify loading, empty, error, success, partial states?
 FIX TO 10: Add interaction state table to the plan:
-
 ```
   FEATURE              | LOADING | EMPTY | ERROR | SUCCESS | PARTIAL
   ---------------------|---------|-------|-------|---------|--------
   [each UI feature]    | [spec]  | [spec]| [spec]| [spec]  | [spec]
 ```
-
 For each state: describe what the user SEES, not backend behavior.
 Empty states are features — specify warmth, primary action, context.
 **STOP.** AskUserQuestion once per issue. Do NOT batch. Recommend + WHY.
 
 ### Pass 3: User Journey & Emotional Arc
-
 Rate 0-10: Does the plan consider the user's emotional experience?
 FIX TO 10: Add user journey storyboard:
-
 ```
   STEP | USER DOES        | USER FEELS      | PLAN SPECIFIES?
   -----|------------------|-----------------|----------------
   1    | Lands on page    | [what emotion?] | [what supports it?]
   ...
 ```
-
 Apply time-horizon design: 5-sec visceral, 5-min behavioral, 5-year reflective.
 **STOP.** AskUserQuestion once per issue. Do NOT batch. Recommend + WHY.
 
 ### Pass 4: AI Slop Risk
-
 Rate 0-10: Does the plan describe specific, intentional UI — or generic patterns?
 FIX TO 10: Rewrite vague UI descriptions with specific alternatives.
-
 - "Cards with icons" → what differentiates these from every SaaS template?
 - "Hero section" → what makes this hero feel like THIS product?
 - "Clean, modern UI" → meaningless. Replace with actual design decisions.
 - "Dashboard with widgets" → what makes this NOT every other dashboard?
-  **STOP.** AskUserQuestion once per issue. Do NOT batch. Recommend + WHY.
+**STOP.** AskUserQuestion once per issue. Do NOT batch. Recommend + WHY.
 
 ### Pass 5: Design System Alignment
-
 Rate 0-10: Does the plan align with DESIGN.md?
 FIX TO 10: If DESIGN.md exists, annotate with specific tokens/components. If no DESIGN.md, flag the gap and recommend `/design-consultation`.
 Flag any new component — does it fit the existing vocabulary?
 **STOP.** AskUserQuestion once per issue. Do NOT batch. Recommend + WHY.
 
 ### Pass 6: Responsive & Accessibility
-
 Rate 0-10: Does the plan specify mobile/tablet, keyboard nav, screen readers?
 FIX TO 10: Add responsive specs per viewport — not "stacked on mobile" but intentional layout changes. Add a11y: keyboard nav patterns, ARIA landmarks, touch target sizes (44px min), color contrast requirements.
 **STOP.** AskUserQuestion once per issue. Do NOT batch. Recommend + WHY.
 
 ### Pass 7: Unresolved Design Decisions
-
 Surface ambiguities that will haunt implementation:
-
 ```
   DECISION NEEDED              | IF DEFERRED, WHAT HAPPENS
   -----------------------------|---------------------------
@@ -449,47 +415,39 @@ Surface ambiguities that will haunt implementation:
   Mobile nav pattern?          | Desktop nav hides behind hamburger
   ...
 ```
-
 Each decision = one AskUserQuestion with recommendation + WHY + alternatives. Edit the plan with each decision as it's made.
 
 ## CRITICAL RULE — How to ask questions
-
 Follow the AskUserQuestion format from the Preamble above. Additional rules for plan design reviews:
-
-- **One issue = one AskUserQuestion call.** Never combine multiple issues into one question.
-- Describe the design gap concretely — what's missing, what the user will experience if it's not specified.
-- Present 2-3 options. For each: effort to specify now, risk if deferred.
-- **Map to Design Principles above.** One sentence connecting your recommendation to a specific principle.
-- Label with issue NUMBER + option LETTER (e.g., "3A", "3B").
-- **Escape hatch:** If a section has no issues, say so and move on. If a gap has an obvious fix, state what you'll add and move on — don't waste a question on it. Only use AskUserQuestion when there is a genuine design choice with meaningful tradeoffs.
+* **One issue = one AskUserQuestion call.** Never combine multiple issues into one question.
+* Describe the design gap concretely — what's missing, what the user will experience if it's not specified.
+* Present 2-3 options. For each: effort to specify now, risk if deferred.
+* **Map to Design Principles above.** One sentence connecting your recommendation to a specific principle.
+* Label with issue NUMBER + option LETTER (e.g., "3A", "3B").
+* **Escape hatch:** If a section has no issues, say so and move on. If a gap has an obvious fix, state what you'll add and move on — don't waste a question on it. Only use AskUserQuestion when there is a genuine design choice with meaningful tradeoffs.
 
 ## Required Outputs
 
 ### "NOT in scope" section
-
 Design decisions considered and explicitly deferred, with one-line rationale each.
 
 ### "What already exists" section
-
 Existing DESIGN.md, UI patterns, and components that the plan should reuse.
 
 ### TODOS.md updates
-
 After all review passes are complete, present each potential TODO as its own individual AskUserQuestion. Never batch TODOs — one per question. Never silently skip this step.
 
 For design debt: missing a11y, unresolved responsive behavior, deferred empty states. Each TODO gets:
-
-- **What:** One-line description of the work.
-- **Why:** The concrete problem it solves or value it unlocks.
-- **Pros:** What you gain by doing this work.
-- **Cons:** Cost, complexity, or risks of doing it.
-- **Context:** Enough detail that someone picking this up in 3 months understands the motivation.
-- **Depends on / blocked by:** Any prerequisites.
+* **What:** One-line description of the work.
+* **Why:** The concrete problem it solves or value it unlocks.
+* **Pros:** What you gain by doing this work.
+* **Cons:** Cost, complexity, or risks of doing it.
+* **Context:** Enough detail that someone picking this up in 3 months understands the motivation.
+* **Depends on / blocked by:** Any prerequisites.
 
 Then present options: **A)** Add to TODOS.md **B)** Skip — not valuable enough **C)** Build it now in this PR instead of deferring.
 
 ### Completion Summary
-
 ```
   +====================================================================+
   |         DESIGN PLAN REVIEW — COMPLETION SUMMARY                    |
@@ -517,7 +475,6 @@ If all passes 8+: "Plan is design-complete. Run /design-review after implementat
 If any below 8: note what's unresolved and why (user chose to defer).
 
 ### Unresolved Decisions
-
 If any AskUserQuestion goes unanswered, note it here. Never silently default to an option.
 
 ## Review Log
@@ -535,7 +492,6 @@ command breaks the review readiness dashboard in /ship.
 ```
 
 Substitute values from the Completion Summary:
-
 - **TIMESTAMP**: current ISO 8601 datetime
 - **STATUS**: "clean" if overall score 8+ AND 0 unresolved; otherwise "issues_open"
 - **overall_score**: final overall design score (0-10)
@@ -569,21 +525,18 @@ Parse the output. Find the most recent entry for each skill (plan-ceo-review, pl
 ```
 
 **Review tiers:**
-
 - **Eng Review (required by default):** The only review that gates shipping. Covers architecture, code quality, tests, performance. Can be disabled globally with \`gstack-config set skip_eng_review true\` (the "don't bother me" setting).
 - **CEO Review (optional):** Use your judgment. Recommend it for big product/business changes, new user-facing features, or scope decisions. Skip for bug fixes, refactors, infra, and cleanup.
 - **Design Review (optional):** Use your judgment. Recommend it for UI/UX changes. Skip for backend-only, infra, or prompt-only changes.
 - **Codex Review (optional):** Independent second opinion from OpenAI Codex CLI. Shows pass/fail gate. Recommend for critical code changes where a second AI perspective adds value. Skip when Codex CLI is not installed.
 
 **Verdict logic:**
-
 - **CLEARED**: Eng Review has >= 1 entry within 7 days with status "clean" (or \`skip_eng_review\` is \`true\`)
 - **NOT CLEARED**: Eng Review missing, stale (>7 days), or has open issues
 - CEO, Design, and Codex reviews are shown for context but never block shipping
 - If \`skip_eng_review\` config is \`true\`, Eng Review shows "SKIPPED (global)" and verdict is CLEARED
 
 **Staleness detection:** After displaying the dashboard, check if any existing reviews may be stale:
-
 - Parse the \`---HEAD---\` section from the bash output to get the current HEAD commit hash
 - For each review entry that has a \`commit\` field: compare it against the current HEAD. If different, count elapsed commits: \`git rev-list --count STORED_COMMIT..HEAD\`. Display: "Note: {skill} review from {date} may be stale — {N} commits since review"
 - For entries without a \`commit\` field (legacy entries): display "Note: {skill} review from {date} has no commit tracking — consider re-running for accurate staleness detection"
@@ -600,15 +553,13 @@ After displaying the Review Readiness Dashboard, recommend the next review(s) ba
 **If both are needed, recommend eng review first** (required gate).
 
 Use AskUserQuestion to present the next step. Include only applicable options:
-
 - **A)** Run /plan-eng-review next (required gate)
 - **B)** Run /plan-ceo-review (only if fundamental product gaps found)
 - **C)** Skip — I'll handle reviews manually
 
 ## Formatting Rules
-
-- NUMBER issues (1, 2, 3...) and LETTERS for options (A, B, C...).
-- Label with NUMBER + LETTER (e.g., "3A", "3B").
-- One sentence max per option.
-- After each pass, pause and wait for feedback.
-- Rate before and after each pass for scannability.
+* NUMBER issues (1, 2, 3...) and LETTERS for options (A, B, C...).
+* Label with NUMBER + LETTER (e.g., "3A", "3B").
+* One sentence max per option.
+* After each pass, pause and wait for feedback.
+* Rate before and after each pass for scannability.

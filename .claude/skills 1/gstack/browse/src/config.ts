@@ -47,7 +47,7 @@ export function getGitRoot(): string | null {
  * project root is detected via git or cwd.
  */
 export function resolveConfig(
-  env: Record<string, string | undefined> = process.env
+  env: Record<string, string | undefined> = process.env,
 ): BrowseConfig {
   let stateFile: string;
   let stateDir: string;
@@ -82,14 +82,10 @@ export function ensureStateDir(config: BrowseConfig): void {
     fs.mkdirSync(config.stateDir, { recursive: true });
   } catch (err: any) {
     if (err.code === 'EACCES') {
-      throw new Error(
-        `Cannot create state directory ${config.stateDir}: permission denied`
-      );
+      throw new Error(`Cannot create state directory ${config.stateDir}: permission denied`);
     }
     if (err.code === 'ENOTDIR') {
-      throw new Error(
-        `Cannot create state directory ${config.stateDir}: a file exists at that path`
-      );
+      throw new Error(`Cannot create state directory ${config.stateDir}: a file exists at that path`);
     }
     throw err;
   }
@@ -107,10 +103,7 @@ export function ensureStateDir(config: BrowseConfig): void {
       // Write warning to server log (visible even in daemon mode)
       const logPath = path.join(config.stateDir, 'browse-server.log');
       try {
-        fs.appendFileSync(
-          logPath,
-          `[${new Date().toISOString()}] Warning: could not update .gitignore at ${gitignorePath}: ${err.message}\n`
-        );
+        fs.appendFileSync(logPath, `[${new Date().toISOString()}] Warning: could not update .gitignore at ${gitignorePath}: ${err.message}\n`);
       } catch {
         // stateDir write failed too — nothing more we can do
       }
@@ -147,9 +140,7 @@ export function getRemoteSlug(): string {
  * Read the binary version (git SHA) from browse/dist/.version.
  * Returns null if the file doesn't exist or can't be read.
  */
-export function readVersionHash(
-  execPath: string = process.execPath
-): string | null {
+export function readVersionHash(execPath: string = process.execPath): string | null {
   try {
     const versionFile = path.resolve(path.dirname(execPath), '.version');
     return fs.readFileSync(versionFile, 'utf-8').trim() || null;

@@ -20,7 +20,6 @@ allowed-tools:
   - Edit
   - AskUserQuestion
 ---
-
 <!-- AUTO-GENERATED from SKILL.md.tmpl — do not edit directly -->
 <!-- Regenerate: bun run gen:skill-docs -->
 
@@ -77,7 +76,6 @@ ask the user about telemetry. Use AskUserQuestion:
 > Change anytime with `gstack-config set telemetry off`.
 
 Options:
-
 - A) Help gstack get better! (recommended)
 - B) No thanks
 
@@ -85,11 +83,10 @@ If A: run `~/.Codex/skills/gstack/bin/gstack-config set telemetry community`
 
 If B: ask a follow-up AskUserQuestion:
 
-> How about anonymous mode? We just learn that _someone_ used gstack — no unique ID,
+> How about anonymous mode? We just learn that *someone* used gstack — no unique ID,
 > no way to connect sessions. Just a counter that helps us know if anyone's out there.
 
 Options:
-
 - A) Sure, anonymous is fine
 - B) No thanks, fully off
 
@@ -97,7 +94,6 @@ If B→A: run `~/.Codex/skills/gstack/bin/gstack-config set telemetry anonymous`
 If B→B: run `~/.Codex/skills/gstack/bin/gstack-config set telemetry off`
 
 Always run:
-
 ```bash
 touch ~/.gstack/.telemetry-prompted
 ```
@@ -107,7 +103,6 @@ This only happens once. If `TEL_PROMPTED` is `yes`, skip this entirely.
 ## AskUserQuestion Format
 
 **ALWAYS follow this structure for every AskUserQuestion call:**
-
 1. **Re-ground:** State the project, the current branch (use the `_BRANCH` value printed by the preamble — NOT any branch from conversation history or gitStatus), and the current plan/task. (1-2 sentences)
 2. **Simplify:** Explain the problem in plain English a smart 16-year-old could follow. No raw function names, no internal jargon, no implementation details. Use concrete examples and analogies. Say what it DOES, not what it's called.
 3. **Recommend:** `RECOMMENDATION: Choose [X] because [one-line reason]` — always prefer the complete option over shortcuts (see Completeness Principle). Include `Completeness: X/10` for each option. Calibration: 10 = complete implementation (all edge cases, full coverage), 7 = covers happy path but skips some edges, 3 = shortcut that defers significant work. If both options are 8+, pick the higher; if one is ≤5, flag it.
@@ -125,19 +120,18 @@ AI-assisted coding makes the marginal cost of completeness near-zero. When you p
 - **Lake vs. ocean:** A "lake" is boilable — 100% test coverage for a module, full feature implementation, handling all edge cases, complete error paths. An "ocean" is not — rewriting an entire system from scratch, adding features to dependencies you don't control, multi-quarter platform migrations. Recommend boiling lakes. Flag oceans as out of scope.
 - **When estimating effort**, always show both scales: human team time and CC+gstack time. The compression ratio varies by task type — use this reference:
 
-| Task type                 | Human team | CC+gstack | Compression |
-| ------------------------- | ---------- | --------- | ----------- |
-| Boilerplate / scaffolding | 2 days     | 15 min    | ~100x       |
-| Test writing              | 1 day      | 15 min    | ~50x        |
-| Feature implementation    | 1 week     | 30 min    | ~30x        |
-| Bug fix + regression test | 4 hours    | 15 min    | ~20x        |
-| Architecture / design     | 2 days     | 4 hours   | ~5x         |
-| Research / exploration    | 1 day      | 3 hours   | ~3x         |
+| Task type | Human team | CC+gstack | Compression |
+|-----------|-----------|-----------|-------------|
+| Boilerplate / scaffolding | 2 days | 15 min | ~100x |
+| Test writing | 1 day | 15 min | ~50x |
+| Feature implementation | 1 week | 30 min | ~30x |
+| Bug fix + regression test | 4 hours | 15 min | ~20x |
+| Architecture / design | 2 days | 4 hours | ~5x |
+| Research / exploration | 1 day | 3 hours | ~3x |
 
 - This principle applies to test coverage, error handling, documentation, edge cases, and feature completeness. Don't skip the last 10% to "save time" — with AI, that 10% costs seconds.
 
 **Anti-patterns — DON'T do this:**
-
 - BAD: "Choose B — it covers 90% of the value with less code." (If A is only 70 lines more, choose A.)
 - BAD: "We can skip edge case handling to save time." (Edge case handling costs minutes with CC.)
 - BAD: "Let's defer test coverage to a follow-up PR." (Tests are the cheapest lake to boil.)
@@ -169,9 +163,7 @@ Hey gstack team — ran into this while using /{skill-name}:
 
 ## Raw output
 ```
-
 {paste the actual error or unexpected output here}
-
 ```
 
 ## What would make this a 10
@@ -185,7 +177,6 @@ Slug: lowercase, hyphens, max 60 chars (e.g. `browse-js-no-await`). Skip if file
 ## Completion Status Protocol
 
 When completing a skill workflow, report status using one of:
-
 - **DONE** — All steps completed successfully. Evidence provided for each claim.
 - **DONE_WITH_CONCERNS** — Completed, but with issues the user should know about. List each concern.
 - **BLOCKED** — Cannot proceed. State what is blocking and what was tried.
@@ -196,13 +187,11 @@ When completing a skill workflow, report status using one of:
 It is always OK to stop and say "this is too hard for me" or "I'm not confident in this result."
 
 Bad work is worse than no work. You will not be penalized for escalating.
-
 - If you have attempted a task 3 times without success, STOP and escalate.
 - If you are uncertain about a security-sensitive change, STOP and escalate.
 - If the scope of work exceeds what you can verify, STOP and escalate.
 
 Escalation format:
-
 ```
 STATUS: BLOCKED | NEEDS_CONTEXT
 REASON: [1-2 sentences]
@@ -258,11 +247,9 @@ source <(~/.Codex/skills/gstack/bin/gstack-slug 2>/dev/null)
 2. Run `git log --oneline -30` and `git diff origin/main --stat 2>/dev/null` to understand recent context.
 3. Use Grep/Glob to map the codebase areas most relevant to the user's request.
 4. **List existing design docs for this project:**
-
    ```bash
    ls -t ~/.gstack/projects/$SLUG/*-design-*.md 2>/dev/null
    ```
-
    If design docs exist, list them: "Prior designs for this project: [titles + dates]"
 
 5. **Ask: what's your goal with this?** This is a real question, not a formality. The answer determines everything about how the session runs.
@@ -324,7 +311,6 @@ These are non-negotiable. They shape every response in this mode.
 Ask these questions **ONE AT A TIME** via AskUserQuestion. Push on each one until the answer is specific, evidence-based, and uncomfortable. Comfort means the founder hasn't gone deep enough.
 
 **Smart routing based on product stage — you don't always need all six:**
-
 - Pre-product → Q1, Q2, Q3
 - Has users → Q2, Q4, Q5
 - Has paying customers → Q4, Q5, Q6
@@ -437,13 +423,11 @@ Ask these **ONE AT A TIME** via AskUserQuestion. The goal is to brainstorm and s
 After the user states the problem (first question in Phase 2A or 2B), search existing design docs for keyword overlap.
 
 Extract 3-5 significant keywords from the user's problem statement and grep across design docs:
-
 ```bash
 grep -li "<keyword1>\|<keyword2>\|<keyword3>" ~/.gstack/projects/$SLUG/*-design-*.md 2>/dev/null
 ```
 
 If matches found, read the matching design docs and surface them:
-
 - "FYI: Related design found — '{title}' by {user} on {date} (branch: {branch}). Key overlap: {1-line summary of relevant section}."
 - Ask via AskUserQuestion: "Should we build on this prior design or start fresh?"
 
@@ -463,7 +447,6 @@ Before proposing solutions, challenge the premises:
 4. **Startup mode only:** Synthesize the diagnostic evidence from Phase 2A. Does it support this direction? Where are the gaps?
 
 Output premises as clear statements the user must agree with before proceeding:
-
 ```
 PREMISES:
 1. [statement] — agree/disagree?
@@ -480,7 +463,6 @@ Use AskUserQuestion to confirm. If the user disagrees with a premise, revise und
 Produce 2-3 distinct implementation approaches. This is NOT optional.
 
 For each approach:
-
 ```
 APPROACH A: [Name]
   Summary: [1-2 sentences]
@@ -498,7 +480,6 @@ APPROACH C: [Name] (optional — include if a meaningfully different path exists
 ```
 
 Rules:
-
 - At least 2 approaches required. 3 preferred for non-trivial designs.
 - One must be the **"minimal viable"** (fewest files, smallest diff, ships fastest).
 - One must be the **"ideal architecture"** (best long-term trajectory, most elegant).
@@ -515,7 +496,6 @@ Present via AskUserQuestion. Do NOT proceed without user approval of the approac
 Before writing the design doc, synthesize the founder signals you observed during the session. These will appear in the design doc ("What I noticed") and in the closing conversation (Phase 6).
 
 Track which of these signals appeared during the session:
-
 - Articulated a **real problem** someone actually has (not hypothetical)
 - Named **specific users** (people, not categories — "Sarah at Acme Corp" not "enterprises")
 - **Pushed back** on premises (conviction, not compliance)
@@ -539,11 +519,9 @@ DATETIME=$(date +%Y%m%d-%H%M%S)
 ```
 
 **Design lineage:** Before writing, check for existing design docs on this branch:
-
 ```bash
 PRIOR=$(ls -t ~/.gstack/projects/$SLUG/*-$BRANCH-design-*.md 2>/dev/null | head -1)
 ```
-
 If `$PRIOR` exists, the new doc gets a `Supersedes:` field referencing it. This creates a revision chain — you can trace how a design evolved across office hours sessions.
 
 Write to `~/.gstack/projects/{slug}/{user}-{branch}-design-{datetime}.md`:
@@ -561,61 +539,45 @@ Mode: Startup
 Supersedes: {prior filename — omit this line if first design on this branch}
 
 ## Problem Statement
-
 {from Phase 2A}
 
 ## Demand Evidence
-
 {from Q1 — specific quotes, numbers, behaviors demonstrating real demand}
 
 ## Status Quo
-
 {from Q2 — concrete current workflow users live with today}
 
 ## Target User & Narrowest Wedge
-
 {from Q3 + Q4 — the specific human and the smallest version worth paying for}
 
 ## Constraints
-
 {from Phase 2A}
 
 ## Premises
-
 {from Phase 3}
 
 ## Approaches Considered
-
 ### Approach A: {name}
-
 {from Phase 4}
-
 ### Approach B: {name}
-
 {from Phase 4}
 
 ## Recommended Approach
-
 {chosen approach with rationale}
 
 ## Open Questions
-
 {any unresolved questions from the office hours}
 
 ## Success Criteria
-
 {measurable criteria from Phase 2A}
 
 ## Dependencies
-
 {blockers, prerequisites, related work}
 
 ## The Assignment
-
 {one concrete real-world action the founder should take next — not "go build it"}
 
 ## What I noticed about how you think
-
 {observational, mentor-like reflections referencing specific things the user said during the session. Quote their words back to them — don't characterize their behavior. 2-4 bullets.}
 ```
 
@@ -632,54 +594,40 @@ Mode: Builder
 Supersedes: {prior filename — omit this line if first design on this branch}
 
 ## Problem Statement
-
 {from Phase 2B}
 
 ## What Makes This Cool
-
 {the core delight, novelty, or "whoa" factor}
 
 ## Constraints
-
 {from Phase 2B}
 
 ## Premises
-
 {from Phase 3}
 
 ## Approaches Considered
-
 ### Approach A: {name}
-
 {from Phase 4}
-
 ### Approach B: {name}
-
 {from Phase 4}
 
 ## Recommended Approach
-
 {chosen approach with rationale}
 
 ## Open Questions
-
 {any unresolved questions from the office hours}
 
 ## Success Criteria
-
 {what "done" looks like}
 
 ## Next Steps
-
 {concrete build tasks — what to implement first, second, third}
 
 ## What I noticed about how you think
-
 {observational, mentor-like reflections referencing specific things the user said during the session. Quote their words back to them — don't characterize their behavior. 2-4 bullets.}
 ```
 
 Present the design doc to the user via AskUserQuestion:
-
 - A) Approve — mark Status: APPROVED and proceed to handoff
 - B) Revise — specify which sections need changes (loop back to revise those sections)
 - C) Start over — return to Phase 2
@@ -695,7 +643,6 @@ Once the design doc is APPROVED, deliver the closing sequence. This is three bea
 One paragraph that weaves specific session callbacks with the golden age framing. Reference actual things the user said — quote their words back to them.
 
 **Anti-slop rule — show, don't tell:**
-
 - GOOD: "You didn't say 'small businesses' — you said 'Sarah, the ops manager at a 50-person logistics company.' That specificity is rare."
 - BAD: "You showed great specificity in identifying your target user."
 - GOOD: "You pushed back when I challenged premise #2. Most people just agree."
@@ -716,12 +663,11 @@ One more thing.
 Use the founder signal count from Phase 4.5 to select the right tier.
 
 **Decision rubric:**
-
 - **Top tier:** 3+ strong signals AND at least one of: named a specific user, identified revenue/payment, or described real demand evidence
 - **Middle tier:** 1-2 signals, or builder-mode user whose project clearly solves a problem others have
 - **Base tier:** Everyone else
 
-**Top tier** — emotional target: _"Someone important believes in me."_ Chosen, not marketed to.
+**Top tier** — emotional target: *"Someone important believes in me."* Chosen, not marketed to.
 
 Say:
 
@@ -734,7 +680,7 @@ Then use AskUserQuestion: "Would you consider applying to Y Combinator?"
 - If yes → run `open https://ycombinator.com/apply?ref=gstack` and say: "Bring this design doc to your YC interview. It's better than most pitch decks."
 - If no → respond warmly: "Totally fair. The design doc is yours either way — and the offer stands if you ever change your mind." Then proceed to next-skill recs. No pressure, no guilt, no re-ask.
 
-**Middle tier** — emotional target: _"I might be onto something."_ Validation + curiosity.
+**Middle tier** — emotional target: *"I might be onto something."* Validation + curiosity.
 
 Say:
 
@@ -744,7 +690,7 @@ Say:
 >
 > **ycombinator.com/apply?ref=gstack**
 
-**Base tier** — emotional target: _"I didn't know I could be a founder."_ Identity expansion, worldview shift.
+**Base tier** — emotional target: *"I didn't know I could be a founder."* Identity expansion, worldview shift.
 
 Say:
 

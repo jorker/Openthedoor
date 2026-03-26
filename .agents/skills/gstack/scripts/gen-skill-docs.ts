@@ -8,11 +8,11 @@
  * Supports --dry-run: generate to memory, exit 1 if different from committed file.
  * Used by skill:check and CI freshness checks.
  */
-import * as fs from 'fs';
-import * as path from 'path';
 
 import { COMMAND_DESCRIPTIONS } from '../browse/src/commands';
 import { SNAPSHOT_FLAGS } from '../browse/src/snapshot';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const ROOT = path.resolve(import.meta.dir, '..');
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -21,12 +21,10 @@ const DRY_RUN = process.argv.includes('--dry-run');
 
 type Host = 'claude' | 'codex';
 
-const HOST_ARG = process.argv.find((a) => a.startsWith('--host'));
+const HOST_ARG = process.argv.find(a => a.startsWith('--host'));
 const HOST: Host = (() => {
   if (!HOST_ARG) return 'claude';
-  const val = HOST_ARG.includes('=')
-    ? HOST_ARG.split('=')[1]
-    : process.argv[process.argv.indexOf(HOST_ARG) + 1];
+  const val = HOST_ARG.includes('=') ? HOST_ARG.split('=')[1] : process.argv[process.argv.indexOf(HOST_ARG) + 1];
   if (val === 'codex' || val === 'agents') return 'codex';
   if (val === 'claude') return 'claude';
   throw new Error(`Unknown host: ${val}. Use claude, codex, or agents.`);
@@ -65,31 +63,17 @@ interface TemplateContext {
 
 function generateCommandReference(_ctx: TemplateContext): string {
   // Group commands by category
-  const groups = new Map<
-    string,
-    Array<{ command: string; description: string; usage?: string }>
-  >();
+  const groups = new Map<string, Array<{ command: string; description: string; usage?: string }>>();
   for (const [cmd, meta] of Object.entries(COMMAND_DESCRIPTIONS)) {
     const list = groups.get(meta.category) || [];
-    list.push({
-      command: cmd,
-      description: meta.description,
-      usage: meta.usage,
-    });
+    list.push({ command: cmd, description: meta.description, usage: meta.usage });
     groups.set(meta.category, list);
   }
 
   // Category display order
   const categoryOrder = [
-    'Navigation',
-    'Reading',
-    'Interaction',
-    'Inspection',
-    'Visual',
-    'Snapshot',
-    'Meta',
-    'Tabs',
-    'Server',
+    'Navigation', 'Reading', 'Interaction', 'Inspection',
+    'Visual', 'Snapshot', 'Meta', 'Tabs', 'Server',
   ];
 
   const sections: string[] = [];
@@ -121,22 +105,16 @@ function generateSnapshotFlags(_ctx: TemplateContext): string {
   ];
 
   for (const flag of SNAPSHOT_FLAGS) {
-    const label = flag.valueHint
-      ? `${flag.short} ${flag.valueHint}`
-      : flag.short;
+    const label = flag.valueHint ? `${flag.short} ${flag.valueHint}` : flag.short;
     lines.push(`${label.padEnd(10)}${flag.long.padEnd(24)}${flag.description}`);
   }
 
   lines.push('```');
   lines.push('');
-  lines.push(
-    'All flags can be combined freely. `-o` only applies when `-a` is also used.'
-  );
+  lines.push('All flags can be combined freely. `-o` only applies when `-a` is also used.');
   lines.push('Example: `$B snapshot -i -a -C -o /tmp/annotated.png`');
   lines.push('');
-  lines.push(
-    '**Ref numbering:** @e refs are assigned sequentially (@e1, @e2, ...) in tree order.'
-  );
+  lines.push('**Ref numbering:** @e refs are assigned sequentially (@e1, @e2, ...) in tree order.');
   lines.push('@c refs from `-C` are numbered separately (@c1, @c2, ...).');
   lines.push('');
   lines.push('After snapshot, use @refs as selectors in any command:');
@@ -146,18 +124,14 @@ function generateSnapshotFlags(_ctx: TemplateContext): string {
   lines.push('$B click @c1       # cursor-interactive ref (from -C)');
   lines.push('```');
   lines.push('');
-  lines.push(
-    '**Output format:** indented accessibility tree with @ref IDs, one element per line.'
-  );
+  lines.push('**Output format:** indented accessibility tree with @ref IDs, one element per line.');
   lines.push('```');
   lines.push('  @e1 [heading] "Welcome" [level=1]');
   lines.push('  @e2 [textbox] "Email"');
   lines.push('  @e3 [button] "Submit"');
   lines.push('```');
   lines.push('');
-  lines.push(
-    'Refs are invalidated on navigation — run `snapshot` again after `goto`.'
-  );
+  lines.push('Refs are invalidated on navigation — run `snapshot` again after `goto`.');
 
   return lines.join('\n');
 }
@@ -1361,10 +1335,7 @@ function transformFrontmatter(content: string, host: Host): string {
   }
 
   // Re-emit Codex frontmatter (name + description only)
-  const indentedDesc = description
-    .split('\n')
-    .map((l) => `  ${l}`)
-    .join('\n');
+  const indentedDesc = description.split('\n').map(l => `  ${l}`).join('\n');
   const codexFm = `---\nname: ${name}\ndescription: |\n${indentedDesc}\n---`;
   return codexFm + body;
 }
@@ -1390,12 +1361,11 @@ function extractHookSafetyProse(tmplContent: string): string | null {
   const toolDescriptions: Record<string, string> = {
     Bash: 'check bash commands for destructive operations (rm -rf, DROP TABLE, force-push, git reset --hard, etc.) before execution',
     Edit: 'verify file edits are within the allowed scope boundary before applying',
-    Write:
-      'verify file writes are within the allowed scope boundary before applying',
+    Write: 'verify file writes are within the allowed scope boundary before applying',
   };
 
   const safetyChecks = matchers
-    .map((t) => toolDescriptions[t] || `check ${t} operations for safety`)
+    .map(t => toolDescriptions[t] || `check ${t} operations for safety`)
     .join(', and ');
 
   return `> **Safety Advisory:** This skill includes safety checks that ${safetyChecks}. When using this skill, always pause and verify before executing potentially destructive operations. If uncertain about a command's safety, ask the user for confirmation before proceeding.`;
@@ -1405,10 +1375,7 @@ function extractHookSafetyProse(tmplContent: string): string | null {
 
 const GENERATED_HEADER = `<!-- AUTO-GENERATED from {{SOURCE}} — do not edit directly -->\n<!-- Regenerate: bun run gen:skill-docs -->\n`;
 
-function processTemplate(
-  tmplPath: string,
-  host: Host = 'claude'
-): { outputPath: string; content: string } {
+function processTemplate(tmplPath: string, host: Host = 'claude'): { outputPath: string; content: string } {
   const tmplContent = fs.readFileSync(tmplPath, 'utf-8');
   const relTmplPath = path.relative(ROOT, tmplPath);
   let outputPath = tmplPath.replace(/\.tmpl$/, '');
@@ -1426,30 +1393,20 @@ function processTemplate(
 
   // Extract skill name from frontmatter for TemplateContext
   const nameMatch = tmplContent.match(/^name:\s*(.+)$/m);
-  const skillName = nameMatch
-    ? nameMatch[1].trim()
-    : path.basename(path.dirname(tmplPath));
-  const ctx: TemplateContext = {
-    skillName,
-    tmplPath,
-    host,
-    paths: HOST_PATHS[host],
-  };
+  const skillName = nameMatch ? nameMatch[1].trim() : path.basename(path.dirname(tmplPath));
+  const ctx: TemplateContext = { skillName, tmplPath, host, paths: HOST_PATHS[host] };
 
   // Replace placeholders
   let content = tmplContent.replace(/\{\{(\w+)\}\}/g, (match, name) => {
     const resolver = RESOLVERS[name];
-    if (!resolver)
-      throw new Error(`Unknown placeholder {{${name}}} in ${relTmplPath}`);
+    if (!resolver) throw new Error(`Unknown placeholder {{${name}}} in ${relTmplPath}`);
     return resolver(ctx);
   });
 
   // Check for any remaining unresolved placeholders
   const remaining = content.match(/\{\{(\w+)\}\}/g);
   if (remaining) {
-    throw new Error(
-      `Unresolved placeholders in ${relTmplPath}: ${remaining.join(', ')}`
-    );
+    throw new Error(`Unresolved placeholders in ${relTmplPath}: ${remaining.join(', ')}`);
   }
 
   // For codex host: transform frontmatter and replace Claude-specific paths
@@ -1463,35 +1420,18 @@ function processTemplate(
     // Insert safety advisory at the top of the body (after frontmatter)
     if (safetyProse) {
       const bodyStart = content.indexOf('\n---') + 4;
-      content =
-        content.slice(0, bodyStart) +
-        '\n' +
-        safetyProse +
-        '\n' +
-        content.slice(bodyStart);
+      content = content.slice(0, bodyStart) + '\n' + safetyProse + '\n' + content.slice(bodyStart);
     }
 
     // Replace remaining hardcoded Claude paths with host-appropriate paths
-    content = content.replace(
-      /~\/\.claude\/skills\/gstack/g,
-      ctx.paths.skillRoot
-    );
-    content = content.replace(
-      /\.claude\/skills\/gstack/g,
-      ctx.paths.localSkillRoot
-    );
-    content = content.replace(
-      /\.claude\/skills\/review/g,
-      '.agents/skills/gstack/review'
-    );
+    content = content.replace(/~\/\.claude\/skills\/gstack/g, ctx.paths.skillRoot);
+    content = content.replace(/\.claude\/skills\/gstack/g, ctx.paths.localSkillRoot);
+    content = content.replace(/\.claude\/skills\/review/g, '.agents/skills/gstack/review');
     content = content.replace(/\.claude\/skills/g, '.agents/skills');
   }
 
   // Prepend generated header (after frontmatter)
-  const header = GENERATED_HEADER.replace(
-    '{{SOURCE}}',
-    path.basename(tmplPath)
-  );
+  const header = GENERATED_HEADER.replace('{{SOURCE}}', path.basename(tmplPath));
   const fmEnd = content.indexOf('---', content.indexOf('---') + 3);
   if (fmEnd !== -1) {
     const insertAt = content.indexOf('\n', fmEnd) + 1;
@@ -1511,12 +1451,7 @@ function findTemplates(): string[] {
   if (fs.existsSync(rootTmpl)) templates.push(rootTmpl);
 
   for (const entry of fs.readdirSync(ROOT, { withFileTypes: true })) {
-    if (
-      !entry.isDirectory() ||
-      entry.name.startsWith('.') ||
-      entry.name === 'node_modules'
-    )
-      continue;
+    if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name === 'node_modules') continue;
     const tmpl = path.join(ROOT, entry.name, 'SKILL.md.tmpl');
     if (fs.existsSync(tmpl)) templates.push(tmpl);
   }
@@ -1536,9 +1471,7 @@ for (const tmplPath of findTemplates()) {
   const relOutput = path.relative(ROOT, outputPath);
 
   if (DRY_RUN) {
-    const existing = fs.existsSync(outputPath)
-      ? fs.readFileSync(outputPath, 'utf-8')
-      : '';
+    const existing = fs.existsSync(outputPath) ? fs.readFileSync(outputPath, 'utf-8') : '';
     if (existing !== content) {
       console.log(`STALE: ${relOutput}`);
       hasChanges = true;
@@ -1552,8 +1485,6 @@ for (const tmplPath of findTemplates()) {
 }
 
 if (DRY_RUN && hasChanges) {
-  console.error(
-    '\nGenerated SKILL.md files are stale. Run: bun run gen:skill-docs'
-  );
+  console.error('\nGenerated SKILL.md files are stale. Run: bun run gen:skill-docs');
   process.exit(1);
 }

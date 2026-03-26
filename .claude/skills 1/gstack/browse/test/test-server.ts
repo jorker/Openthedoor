@@ -3,15 +3,12 @@
  * Serves HTML files from test/fixtures/ on a random available port
  */
 
-import * as fs from 'fs';
 import * as path from 'path';
+import * as fs from 'fs';
 
 const FIXTURES_DIR = path.resolve(import.meta.dir, 'fixtures');
 
-export function startTestServer(port: number = 0): {
-  server: ReturnType<typeof Bun.serve>;
-  url: string;
-} {
+export function startTestServer(port: number = 0): { server: ReturnType<typeof Bun.serve>; url: string } {
   const server = Bun.serve({
     port,
     hostname: '127.0.0.1',
@@ -21,9 +18,7 @@ export function startTestServer(port: number = 0): {
       // Echo endpoint — returns request headers as JSON
       if (url.pathname === '/echo') {
         const headers: Record<string, string> = {};
-        req.headers.forEach((value, key) => {
-          headers[key] = value;
-        });
+        req.headers.forEach((value, key) => { headers[key] = value; });
         return new Response(JSON.stringify(headers, null, 2), {
           headers: { 'Content-Type': 'application/json' },
         });

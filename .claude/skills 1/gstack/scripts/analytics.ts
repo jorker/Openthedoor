@@ -10,9 +10,10 @@
  * Usage:
  *   bun run scripts/analytics.ts [--period 7d|30d|all]
  */
+
 import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
+import * as os from 'os';
 
 export interface AnalyticsEvent {
   skill: string;
@@ -22,12 +23,7 @@ export interface AnalyticsEvent {
   pattern?: string;
 }
 
-const ANALYTICS_FILE = path.join(
-  os.homedir(),
-  '.gstack',
-  'analytics',
-  'skill-usage.jsonl'
-);
+const ANALYTICS_FILE = path.join(os.homedir(), '.gstack', 'analytics', 'skill-usage.jsonl');
 
 /**
  * Parse JSONL content into AnalyticsEvent[], skipping malformed lines.
@@ -39,11 +35,7 @@ export function parseJSONL(content: string): AnalyticsEvent[] {
     if (!trimmed) continue;
     try {
       const obj = JSON.parse(trimmed);
-      if (
-        typeof obj === 'object' &&
-        obj !== null &&
-        typeof obj.ts === 'string'
-      ) {
+      if (typeof obj === 'object' && obj !== null && typeof obj.ts === 'string') {
         events.push(obj as AnalyticsEvent);
       }
     } catch {
@@ -56,10 +48,7 @@ export function parseJSONL(content: string): AnalyticsEvent[] {
 /**
  * Filter events by period. Supports "7d", "30d", and "all".
  */
-export function filterByPeriod(
-  events: AnalyticsEvent[],
-  period: string
-): AnalyticsEvent[] {
+export function filterByPeriod(events: AnalyticsEvent[], period: string): AnalyticsEvent[] {
   if (period === 'all') return events;
 
   const match = period.match(/^(\d+)d$/);
@@ -68,7 +57,7 @@ export function filterByPeriod(
   const days = parseInt(match[1], 10);
   const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-  return events.filter((e) => {
+  return events.filter(e => {
     const d = new Date(e.ts);
     return !isNaN(d.getTime()) && d >= cutoff;
   });
@@ -77,20 +66,16 @@ export function filterByPeriod(
 /**
  * Format a report string from a list of events.
  */
-export function formatReport(
-  events: AnalyticsEvent[],
-  period: string = 'all'
-): string {
-  const skillEvents = events.filter((e) => e.event !== 'hook_fire');
-  const hookEvents = events.filter((e) => e.event === 'hook_fire');
+export function formatReport(events: AnalyticsEvent[], period: string = 'all'): string {
+  const skillEvents = events.filter(e => e.event !== 'hook_fire');
+  const hookEvents = events.filter(e => e.event === 'hook_fire');
 
   const lines: string[] = [];
   lines.push('gstack skill usage analytics');
   lines.push('\u2550'.repeat(39));
   lines.push('');
 
-  const periodLabel =
-    period === 'all' ? 'all time' : `last ${period.replace('d', ' days')}`;
+  const periodLabel = period === 'all' ? 'all time' : `last ${period.replace('d', ' days')}`;
   lines.push(`Period: ${periodLabel}`);
 
   // Top Skills
@@ -105,9 +90,7 @@ export function formatReport(
 
     const sorted = [...skillCounts.entries()].sort((a, b) => b[1] - a[1]);
     const maxName = Math.max(...sorted.map(([name]) => name.length + 1)); // +1 for /
-    const maxCount = Math.max(
-      ...sorted.map(([, count]) => String(count).length)
-    );
+    const maxCount = Math.max(...sorted.map(([, count]) => String(count).length));
 
     for (const [name, count] of sorted) {
       const label = `/${name}`;
@@ -130,9 +113,7 @@ export function formatReport(
     lines.push('');
     lines.push('By Repo');
 
-    const sortedRepos = [...repoSkills.entries()].sort((a, b) =>
-      a[0].localeCompare(b[0])
-    );
+    const sortedRepos = [...repoSkills.entries()].sort((a, b) => a[0].localeCompare(b[0]));
     for (const [repo, skills] of sortedRepos) {
       const parts = [...skills.entries()]
         .sort((a, b) => b[1] - a[1])
@@ -166,9 +147,7 @@ export function formatReport(
   const totalSkills = skillEvents.length;
   const totalHooks = hookEvents.length;
   lines.push('');
-  lines.push(
-    `Total: ${totalSkills} skill invocation${totalSkills === 1 ? '' : 's'}, ${totalHooks} hook fire${totalHooks === 1 ? '' : 's'}`
-  );
+  lines.push(`Total: ${totalSkills} skill invocation${totalSkills === 1 ? '' : 's'}, ${totalHooks} hook fire${totalHooks === 1 ? '' : 's'}`);
 
   return lines.join('\n');
 }

@@ -1,8 +1,8 @@
+import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
+import * as os from 'os';
 
 const ROOT = path.resolve(import.meta.dir, '..');
 const BIN = path.join(ROOT, 'bin');
@@ -30,7 +30,7 @@ function readJsonl(): string[] {
 }
 
 function parseJsonl(): any[] {
-  return readJsonl().map((line) => JSON.parse(line));
+  return readJsonl().map(line => JSON.parse(line));
 }
 
 beforeEach(() => {
@@ -44,9 +44,7 @@ afterEach(() => {
 describe('gstack-telemetry-log', () => {
   test('appends valid JSONL when tier=anonymous', () => {
     setConfig('telemetry', 'anonymous');
-    run(
-      `${BIN}/gstack-telemetry-log --skill qa --duration 142 --outcome success --session-id test-123`
-    );
+    run(`${BIN}/gstack-telemetry-log --skill qa --duration 142 --outcome success --session-id test-123`);
 
     const events = parseJsonl();
     expect(events).toHaveLength(1);
@@ -62,27 +60,21 @@ describe('gstack-telemetry-log', () => {
 
   test('produces no output when tier=off', () => {
     setConfig('telemetry', 'off');
-    run(
-      `${BIN}/gstack-telemetry-log --skill ship --duration 30 --outcome success --session-id test-456`
-    );
+    run(`${BIN}/gstack-telemetry-log --skill ship --duration 30 --outcome success --session-id test-456`);
 
     expect(readJsonl()).toHaveLength(0);
   });
 
   test('defaults to off for invalid tier value', () => {
     setConfig('telemetry', 'invalid_value');
-    run(
-      `${BIN}/gstack-telemetry-log --skill ship --duration 30 --outcome success --session-id test-789`
-    );
+    run(`${BIN}/gstack-telemetry-log --skill ship --duration 30 --outcome success --session-id test-789`);
 
     expect(readJsonl()).toHaveLength(0);
   });
 
   test('includes installation_id for community tier', () => {
     setConfig('telemetry', 'community');
-    run(
-      `${BIN}/gstack-telemetry-log --skill review --duration 100 --outcome success --session-id comm-123`
-    );
+    run(`${BIN}/gstack-telemetry-log --skill review --duration 100 --outcome success --session-id comm-123`);
 
     const events = parseJsonl();
     expect(events).toHaveLength(1);
@@ -92,9 +84,7 @@ describe('gstack-telemetry-log', () => {
 
   test('installation_id is null for anonymous tier', () => {
     setConfig('telemetry', 'anonymous');
-    run(
-      `${BIN}/gstack-telemetry-log --skill qa --duration 50 --outcome success --session-id anon-123`
-    );
+    run(`${BIN}/gstack-telemetry-log --skill qa --duration 50 --outcome success --session-id anon-123`);
 
     const events = parseJsonl();
     expect(events[0].installation_id).toBeNull();
@@ -102,9 +92,7 @@ describe('gstack-telemetry-log', () => {
 
   test('includes error_class when provided', () => {
     setConfig('telemetry', 'anonymous');
-    run(
-      `${BIN}/gstack-telemetry-log --skill browse --duration 10 --outcome error --error-class timeout --session-id err-123`
-    );
+    run(`${BIN}/gstack-telemetry-log --skill browse --duration 10 --outcome error --error-class timeout --session-id err-123`);
 
     const events = parseJsonl();
     expect(events[0].error_class).toBe('timeout');
@@ -113,9 +101,7 @@ describe('gstack-telemetry-log', () => {
 
   test('handles missing duration gracefully', () => {
     setConfig('telemetry', 'anonymous');
-    run(
-      `${BIN}/gstack-telemetry-log --skill qa --outcome success --session-id nodur-123`
-    );
+    run(`${BIN}/gstack-telemetry-log --skill qa --outcome success --session-id nodur-123`);
 
     const events = parseJsonl();
     expect(events[0].duration_s).toBeNull();
@@ -123,9 +109,7 @@ describe('gstack-telemetry-log', () => {
 
   test('supports event_type flag', () => {
     setConfig('telemetry', 'anonymous');
-    run(
-      `${BIN}/gstack-telemetry-log --event-type upgrade_prompted --skill "" --outcome success --session-id up-123`
-    );
+    run(`${BIN}/gstack-telemetry-log --event-type upgrade_prompted --skill "" --outcome success --session-id up-123`);
 
     const events = parseJsonl();
     expect(events[0].event_type).toBe('upgrade_prompted');
@@ -133,9 +117,7 @@ describe('gstack-telemetry-log', () => {
 
   test('includes local-only fields (_repo_slug, _branch)', () => {
     setConfig('telemetry', 'anonymous');
-    run(
-      `${BIN}/gstack-telemetry-log --skill qa --duration 50 --outcome success --session-id local-123`
-    );
+    run(`${BIN}/gstack-telemetry-log --skill qa --duration 50 --outcome success --session-id local-123`);
 
     const events = parseJsonl();
     // These should be present in local JSONL
@@ -146,13 +128,10 @@ describe('gstack-telemetry-log', () => {
   test('creates analytics directory if missing', () => {
     // Remove analytics dir
     const analyticsDir = path.join(tmpDir, 'analytics');
-    if (fs.existsSync(analyticsDir))
-      fs.rmSync(analyticsDir, { recursive: true });
+    if (fs.existsSync(analyticsDir)) fs.rmSync(analyticsDir, { recursive: true });
 
     setConfig('telemetry', 'anonymous');
-    run(
-      `${BIN}/gstack-telemetry-log --skill qa --duration 50 --outcome success --session-id mkdir-123`
-    );
+    run(`${BIN}/gstack-telemetry-log --skill qa --duration 50 --outcome success --session-id mkdir-123`);
 
     expect(fs.existsSync(analyticsDir)).toBe(true);
     expect(readJsonl()).toHaveLength(1);
@@ -172,9 +151,7 @@ describe('.pending marker', () => {
     );
 
     // Run telemetry-log with a DIFFERENT session — should finalize the old pending marker
-    run(
-      `${BIN}/gstack-telemetry-log --skill qa --duration 50 --outcome success --session-id new-456`
-    );
+    run(`${BIN}/gstack-telemetry-log --skill qa --duration 50 --outcome success --session-id new-456`);
 
     const events = parseJsonl();
     expect(events).toHaveLength(2);
@@ -195,14 +172,9 @@ describe('.pending marker', () => {
     const analyticsDir = path.join(tmpDir, 'analytics');
     fs.mkdirSync(analyticsDir, { recursive: true });
     const pendingPath = path.join(analyticsDir, '.pending-stale-session');
-    fs.writeFileSync(
-      pendingPath,
-      '{"skill":"stale","ts":"2026-03-18T00:00:00Z","session_id":"stale-session","gstack_version":"v"}'
-    );
+    fs.writeFileSync(pendingPath, '{"skill":"stale","ts":"2026-03-18T00:00:00Z","session_id":"stale-session","gstack_version":"v"}');
 
-    run(
-      `${BIN}/gstack-telemetry-log --skill qa --duration 50 --outcome success --session-id new-456`
-    );
+    run(`${BIN}/gstack-telemetry-log --skill qa --duration 50 --outcome success --session-id new-456`);
 
     expect(fs.existsSync(pendingPath)).toBe(false);
   });
@@ -214,14 +186,9 @@ describe('.pending marker', () => {
     fs.mkdirSync(analyticsDir, { recursive: true });
     // Create pending for same session ID we'll use
     const pendingPath = path.join(analyticsDir, '.pending-same-session');
-    fs.writeFileSync(
-      pendingPath,
-      '{"skill":"in-flight","ts":"2026-03-18T00:00:00Z","session_id":"same-session","gstack_version":"v"}'
-    );
+    fs.writeFileSync(pendingPath, '{"skill":"in-flight","ts":"2026-03-18T00:00:00Z","session_id":"same-session","gstack_version":"v"}');
 
-    run(
-      `${BIN}/gstack-telemetry-log --skill qa --duration 50 --outcome success --session-id same-session`
-    );
+    run(`${BIN}/gstack-telemetry-log --skill qa --duration 50 --outcome success --session-id same-session`);
 
     // Should only have 1 event (the new one), not finalize own pending
     const events = parseJsonl();
@@ -235,14 +202,9 @@ describe('.pending marker', () => {
     const analyticsDir = path.join(tmpDir, 'analytics');
     fs.mkdirSync(analyticsDir, { recursive: true });
     const pendingPath = path.join(analyticsDir, '.pending-off-123');
-    fs.writeFileSync(
-      pendingPath,
-      '{"skill":"stale","ts":"2026-03-18T00:00:00Z","session_id":"off-123","gstack_version":"v"}'
-    );
+    fs.writeFileSync(pendingPath, '{"skill":"stale","ts":"2026-03-18T00:00:00Z","session_id":"off-123","gstack_version":"v"}');
 
-    run(
-      `${BIN}/gstack-telemetry-log --skill qa --duration 50 --outcome success --session-id off-123`
-    );
+    run(`${BIN}/gstack-telemetry-log --skill qa --duration 50 --outcome success --session-id off-123`);
 
     expect(fs.existsSync(pendingPath)).toBe(false);
     // But no JSONL entries since tier=off
@@ -258,15 +220,9 @@ describe('gstack-analytics', () => {
 
   test('renders usage dashboard with events', () => {
     setConfig('telemetry', 'anonymous');
-    run(
-      `${BIN}/gstack-telemetry-log --skill qa --duration 120 --outcome success --session-id a-1`
-    );
-    run(
-      `${BIN}/gstack-telemetry-log --skill qa --duration 60 --outcome success --session-id a-2`
-    );
-    run(
-      `${BIN}/gstack-telemetry-log --skill ship --duration 30 --outcome error --error-class timeout --session-id a-3`
-    );
+    run(`${BIN}/gstack-telemetry-log --skill qa --duration 120 --outcome success --session-id a-1`);
+    run(`${BIN}/gstack-telemetry-log --skill qa --duration 60 --outcome success --session-id a-2`);
+    run(`${BIN}/gstack-telemetry-log --skill ship --duration 30 --outcome error --error-class timeout --session-id a-3`);
 
     const output = run(`${BIN}/gstack-analytics all`);
     expect(output).toContain('/qa');
@@ -279,9 +235,7 @@ describe('gstack-analytics', () => {
 
   test('filters by time window', () => {
     setConfig('telemetry', 'anonymous');
-    run(
-      `${BIN}/gstack-telemetry-log --skill qa --duration 60 --outcome success --session-id t-1`
-    );
+    run(`${BIN}/gstack-telemetry-log --skill qa --duration 60 --outcome success --session-id t-1`);
 
     const output7d = run(`${BIN}/gstack-analytics 7d`);
     expect(output7d).toContain('/qa');
@@ -297,9 +251,7 @@ describe('gstack-telemetry-sync', () => {
   });
 
   test('exits silently with no JSONL file', () => {
-    const result = run(`${BIN}/gstack-telemetry-sync`, {
-      GSTACK_TELEMETRY_ENDPOINT: 'http://localhost:9999',
-    });
+    const result = run(`${BIN}/gstack-telemetry-sync`, { GSTACK_TELEMETRY_ENDPOINT: 'http://localhost:9999' });
     expect(result).toBe('');
   });
 });

@@ -43,4 +43,8 @@ prettier.config.*
 # Other
 coverage
 .DS_Store
+.agents
+.claude
+.codex
+.gstack
 .worktrees

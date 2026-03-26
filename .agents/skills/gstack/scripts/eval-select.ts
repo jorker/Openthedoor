@@ -7,15 +7,15 @@
  *   bun run eval:select --json       # machine-readable JSON
  *   bun run eval:select --base main  # override base branch
  */
-import * as path from 'path';
 
+import * as path from 'path';
 import {
-  detectBaseBranch,
-  E2E_TOUCHFILES,
-  getChangedFiles,
-  GLOBAL_TOUCHFILES,
-  LLM_JUDGE_TOUCHFILES,
   selectTests,
+  detectBaseBranch,
+  getChangedFiles,
+  E2E_TOUCHFILES,
+  LLM_JUDGE_TOUCHFILES,
+  GLOBAL_TOUCHFILES,
 } from '../test/helpers/touchfiles';
 
 const ROOT = path.resolve(import.meta.dir, '..');
@@ -30,15 +30,7 @@ const changedFiles = getChangedFiles(baseBranch, ROOT);
 
 if (changedFiles.length === 0) {
   if (jsonMode) {
-    console.log(
-      JSON.stringify({
-        base: baseBranch,
-        changed_files: 0,
-        e2e: 'all',
-        llm_judge: 'all',
-        reason: 'no diff — would run all tests',
-      })
-    );
+    console.log(JSON.stringify({ base: baseBranch, changed_files: 0, e2e: 'all', llm_judge: 'all', reason: 'no diff — would run all tests' }));
   } else {
     console.log(`Base: ${baseBranch}`);
     console.log('No changed files detected — all tests would run.');
@@ -46,52 +38,33 @@ if (changedFiles.length === 0) {
   process.exit(0);
 }
 
-const e2eSelection = selectTests(
-  changedFiles,
-  E2E_TOUCHFILES,
-  GLOBAL_TOUCHFILES
-);
-const llmSelection = selectTests(
-  changedFiles,
-  LLM_JUDGE_TOUCHFILES,
-  GLOBAL_TOUCHFILES
-);
+const e2eSelection = selectTests(changedFiles, E2E_TOUCHFILES, GLOBAL_TOUCHFILES);
+const llmSelection = selectTests(changedFiles, LLM_JUDGE_TOUCHFILES, GLOBAL_TOUCHFILES);
 
 if (jsonMode) {
-  console.log(
-    JSON.stringify(
-      {
-        base: baseBranch,
-        changed_files: changedFiles,
-        e2e: {
-          selected: e2eSelection.selected,
-          skipped: e2eSelection.skipped,
-          reason: e2eSelection.reason,
-          count: `${e2eSelection.selected.length}/${Object.keys(E2E_TOUCHFILES).length}`,
-        },
-        llm_judge: {
-          selected: llmSelection.selected,
-          skipped: llmSelection.skipped,
-          reason: llmSelection.reason,
-          count: `${llmSelection.selected.length}/${Object.keys(LLM_JUDGE_TOUCHFILES).length}`,
-        },
-      },
-      null,
-      2
-    )
-  );
+  console.log(JSON.stringify({
+    base: baseBranch,
+    changed_files: changedFiles,
+    e2e: {
+      selected: e2eSelection.selected,
+      skipped: e2eSelection.skipped,
+      reason: e2eSelection.reason,
+      count: `${e2eSelection.selected.length}/${Object.keys(E2E_TOUCHFILES).length}`,
+    },
+    llm_judge: {
+      selected: llmSelection.selected,
+      skipped: llmSelection.skipped,
+      reason: llmSelection.reason,
+      count: `${llmSelection.selected.length}/${Object.keys(LLM_JUDGE_TOUCHFILES).length}`,
+    },
+  }, null, 2));
 } else {
   console.log(`Base: ${baseBranch}`);
   console.log(`Changed files: ${changedFiles.length}`);
   console.log();
 
-  console.log(
-    `E2E (${e2eSelection.reason}): ${e2eSelection.selected.length}/${Object.keys(E2E_TOUCHFILES).length} tests`
-  );
-  if (
-    e2eSelection.selected.length > 0 &&
-    e2eSelection.selected.length < Object.keys(E2E_TOUCHFILES).length
-  ) {
+  console.log(`E2E (${e2eSelection.reason}): ${e2eSelection.selected.length}/${Object.keys(E2E_TOUCHFILES).length} tests`);
+  if (e2eSelection.selected.length > 0 && e2eSelection.selected.length < Object.keys(E2E_TOUCHFILES).length) {
     console.log(`  Selected: ${e2eSelection.selected.join(', ')}`);
     console.log(`  Skipped:  ${e2eSelection.skipped.join(', ')}`);
   } else if (e2eSelection.selected.length === 0) {
@@ -101,13 +74,8 @@ if (jsonMode) {
   }
   console.log();
 
-  console.log(
-    `LLM-judge (${llmSelection.reason}): ${llmSelection.selected.length}/${Object.keys(LLM_JUDGE_TOUCHFILES).length} tests`
-  );
-  if (
-    llmSelection.selected.length > 0 &&
-    llmSelection.selected.length < Object.keys(LLM_JUDGE_TOUCHFILES).length
-  ) {
+  console.log(`LLM-judge (${llmSelection.reason}): ${llmSelection.selected.length}/${Object.keys(LLM_JUDGE_TOUCHFILES).length} tests`);
+  if (llmSelection.selected.length > 0 && llmSelection.selected.length < Object.keys(LLM_JUDGE_TOUCHFILES).length) {
     console.log(`  Selected: ${llmSelection.selected.join(', ')}`);
     console.log(`  Skipped:  ${llmSelection.skipped.join(', ')}`);
   } else if (llmSelection.selected.length === 0) {

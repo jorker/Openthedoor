@@ -10,11 +10,10 @@
  *   - scripts/dev-skill.ts (watch mode)
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-
 import { ALL_COMMANDS } from '../../browse/src/commands';
 import { parseSnapshotArgs } from '../../browse/src/snapshot';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export interface BrowseCommand {
   command: string;
@@ -138,10 +137,7 @@ export function validateSkill(skillPath: string): ValidationResult {
  * Extract all REMOTE_SLUG=$(...) assignment patterns from .md files in given subdirectories.
  * Returns a Map from filename → array of full assignment lines found.
  */
-export function extractRemoteSlugPatterns(
-  rootDir: string,
-  subdirs: string[]
-): Map<string, string[]> {
+export function extractRemoteSlugPatterns(rootDir: string, subdirs: string[]): Map<string, string[]> {
   const results = new Map<string, string[]>();
   const pattern = /^REMOTE_SLUG=\$\(.*\)$/;
 
@@ -149,7 +145,7 @@ export function extractRemoteSlugPatterns(
     const dir = path.join(rootDir, subdir);
     if (!fs.existsSync(dir)) continue;
 
-    const files = fs.readdirSync(dir).filter((f) => f.endsWith('.md'));
+    const files = fs.readdirSync(dir).filter(f => f.endsWith('.md'));
     for (const file of files) {
       const filePath = path.join(dir, file);
       const content = fs.readFileSync(filePath, 'utf-8');

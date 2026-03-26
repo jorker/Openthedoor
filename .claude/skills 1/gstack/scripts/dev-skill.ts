@@ -5,20 +5,17 @@
  * Watches .tmpl files, regenerates SKILL.md files on change,
  * validates all $B commands immediately.
  */
+
+import { validateSkill } from '../test/helpers/skill-parser';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-
-import { validateSkill } from '../test/helpers/skill-parser';
 
 const ROOT = path.resolve(import.meta.dir, '..');
 
 const TEMPLATES = [
   { tmpl: path.join(ROOT, 'SKILL.md.tmpl'), output: 'SKILL.md' },
-  {
-    tmpl: path.join(ROOT, 'browse', 'SKILL.md.tmpl'),
-    output: 'browse/SKILL.md',
-  },
+  { tmpl: path.join(ROOT, 'browse', 'SKILL.md.tmpl'), output: 'browse/SKILL.md' },
 ];
 
 function regenerateAndValidate() {
@@ -26,9 +23,7 @@ function regenerateAndValidate() {
   try {
     execSync('bun run scripts/gen-skill-docs.ts', { cwd: ROOT, stdio: 'pipe' });
   } catch (err: any) {
-    console.log(
-      `  [gen]   ERROR: ${err.stderr?.toString().trim() || err.message}`
-    );
+    console.log(`  [gen]   ERROR: ${err.stderr?.toString().trim() || err.message}`);
     return;
   }
 
@@ -45,17 +40,13 @@ function regenerateAndValidate() {
     if (totalInvalid > 0 || totalSnapErrors > 0) {
       console.log(`  [check] \u274c ${output} (${totalValid} valid)`);
       for (const inv of result.invalid) {
-        console.log(
-          `          Unknown command: '${inv.command}' at line ${inv.line}`
-        );
+        console.log(`          Unknown command: '${inv.command}' at line ${inv.line}`);
       }
       for (const se of result.snapshotFlagErrors) {
         console.log(`          ${se.error} at line ${se.command.line}`);
       }
     } else {
-      console.log(
-        `  [check] \u2705 ${output} — ${totalValid} commands, all valid`
-      );
+      console.log(`  [check] \u2705 ${output} — ${totalValid} commands, all valid`);
     }
   }
 }

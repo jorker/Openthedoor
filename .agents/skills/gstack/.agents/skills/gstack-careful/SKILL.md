@@ -7,11 +7,10 @@ description: |
   or working in a shared environment. Use when asked to "be careful", "safety mode",
   "prod mode", or "careful mode".
 ---
-
 <!-- AUTO-GENERATED from SKILL.md.tmpl — do not edit directly -->
 <!-- Regenerate: bun run gen:skill-docs -->
-
 > **Safety Advisory:** This skill includes safety checks that check bash commands for destructive operations (rm -rf, DROP TABLE, force-push, git reset --hard, etc.) before execution. When using this skill, always pause and verify before executing potentially destructive operations. If uncertain about a command's safety, ask the user for confirmation before proceeding.
+
 
 # /careful — Destructive Command Guardrails
 
@@ -26,21 +25,20 @@ echo '{"skill":"careful","ts":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","repo":"'$(base
 
 ## What's protected
 
-| Pattern                                | Example                   | Risk                  |
-| -------------------------------------- | ------------------------- | --------------------- |
-| `rm -rf` / `rm -r` / `rm --recursive`  | `rm -rf /var/data`        | Recursive delete      |
-| `DROP TABLE` / `DROP DATABASE`         | `DROP TABLE users;`       | Data loss             |
-| `TRUNCATE`                             | `TRUNCATE orders;`        | Data loss             |
-| `git push --force` / `-f`              | `git push -f origin main` | History rewrite       |
-| `git reset --hard`                     | `git reset --hard HEAD~3` | Uncommitted work loss |
-| `git checkout .` / `git restore .`     | `git checkout .`          | Uncommitted work loss |
-| `kubectl delete`                       | `kubectl delete pod`      | Production impact     |
-| `docker rm -f` / `docker system prune` | `docker system prune -a`  | Container/image loss  |
+| Pattern | Example | Risk |
+|---------|---------|------|
+| `rm -rf` / `rm -r` / `rm --recursive` | `rm -rf /var/data` | Recursive delete |
+| `DROP TABLE` / `DROP DATABASE` | `DROP TABLE users;` | Data loss |
+| `TRUNCATE` | `TRUNCATE orders;` | Data loss |
+| `git push --force` / `-f` | `git push -f origin main` | History rewrite |
+| `git reset --hard` | `git reset --hard HEAD~3` | Uncommitted work loss |
+| `git checkout .` / `git restore .` | `git checkout .` | Uncommitted work loss |
+| `kubectl delete` | `kubectl delete pod` | Production impact |
+| `docker rm -f` / `docker system prune` | `docker system prune -a` | Container/image loss |
 
 ## Safe exceptions
 
 These patterns are allowed without warning:
-
 - `rm -rf node_modules` / `.next` / `dist` / `__pycache__` / `.cache` / `build` / `.turbo` / `coverage`
 
 ## How it works

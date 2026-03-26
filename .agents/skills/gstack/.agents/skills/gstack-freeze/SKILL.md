@@ -7,11 +7,10 @@ description: |
   Use when asked to "freeze", "restrict edits", "only edit this folder",
   or "lock down edits".
 ---
-
 <!-- AUTO-GENERATED from SKILL.md.tmpl — do not edit directly -->
 <!-- Regenerate: bun run gen:skill-docs -->
-
 > **Safety Advisory:** This skill includes safety checks that verify file edits are within the allowed scope boundary before applying, and verify file writes are within the allowed scope boundary before applying. When using this skill, always pause and verify before executing potentially destructive operations. If uncertain about a command's safety, ask the user for confirmation before proceeding.
+
 
 # /freeze — Restrict Edits to a Directory
 
@@ -33,14 +32,12 @@ Ask the user which directory to restrict edits to. Use AskUserQuestion:
 Once the user provides a directory path:
 
 1. Resolve it to an absolute path:
-
 ```bash
 FREEZE_DIR=$(cd "<user-provided-path>" 2>/dev/null && pwd)
 echo "$FREEZE_DIR"
 ```
 
 2. Ensure trailing slash and save to the freeze state file:
-
 ```bash
 FREEZE_DIR="${FREEZE_DIR%/}/"
 STATE_DIR="${CLAUDE_PLUGIN_DATA:-$HOME/.gstack}"
