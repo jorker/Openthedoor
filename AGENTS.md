@@ -1,0 +1,12 @@
+Primary docs:
+- `docs/PRODUCT_SENSE.md`: users, value, scope, priorities, metrics
+- `docs/DESIGN.md`: interaction model and UX principles
+- `docs/product-specs/`: stable capability behavior and business rules
+- `docs/design-docs/`: deeper capability reasoning and tradeoffs
+- `docs/PLANS.md`: planning conventions
+- `docs/exec-plans/active/`: implementation-ready active plans
+- `docs/exec-plans/completed/`: completed plans
+- `docs/exec-plans/tech-debt-tracker.md`: deferred follow-up work
+- `docs/generated/db-schema.md`: current data model reference
+- `docs/RELIABILITY.md`: failure, consistency, recovery rules
+- `docs/SECURITY.md`: auth, privacy, abuse-prevention rules
