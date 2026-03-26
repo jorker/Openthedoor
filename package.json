@@ -27,6 +27,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "check": "pnpm lint && pnpm format:check && pnpm test && pnpm build",
     "db:generate": "tsx scripts/with-env.ts npx drizzle-kit generate --config=src/core/db/config.ts",
     "db:migrate": "tsx scripts/with-env.ts npx drizzle-kit migrate --config=src/core/db/config.ts",
     "db:push": "tsx scripts/with-env.ts npx drizzle-kit push --config=src/core/db/config.ts",

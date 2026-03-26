@@ -84,7 +84,9 @@ export async function getAllConfigs(): Promise<Configs> {
   let dbConfigs: Configs = {};
 
   // only get configs from db in server side
-  const hasDb = envConfigs.database_url || (envConfigs.database_provider === 'd1' && isCloudflareWorker);
+  const hasDb =
+    envConfigs.database_url ||
+    (envConfigs.database_provider === 'd1' && isCloudflareWorker);
   if (typeof window === 'undefined' && hasDb) {
     try {
       dbConfigs = await getConfigs();
