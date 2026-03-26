@@ -1,28 +1,27 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion, useInView, useReducedMotion } from "framer-motion";
-import { useRef } from "react";
+import React, { useRef } from 'react';
+import { motion, useInView, useReducedMotion } from 'framer-motion';
 
 interface ScrollAnimationProps {
   children: React.ReactNode;
   className?: string;
   delay?: number;
-  direction?: "up" | "down" | "left" | "right";
+  direction?: 'up' | 'down' | 'left' | 'right';
   stagger?: boolean;
 }
 
 export function ScrollAnimation({
   children,
-  className = "",
+  className = '',
   delay = 0,
-  direction = "up",
+  direction = 'up',
   stagger = false,
 }: ScrollAnimationProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, {
     once: true,
-    margin: "-50px", // Optimization: trigger animation earlier for better perceived performance
+    margin: '-50px', // Optimization: trigger animation earlier for better perceived performance
   });
 
   // Respect user's reduced motion preference (accessibility)
@@ -39,13 +38,13 @@ export function ScrollAnimation({
 
   const getInitialPosition = () => {
     switch (direction) {
-      case "up":
+      case 'up':
         return { y: 30, x: 0 };
-      case "down":
+      case 'down':
         return { y: -30, x: 0 };
-      case "left":
+      case 'left':
         return { x: 30, y: 0 };
-      case "right":
+      case 'right':
         return { x: -30, y: 0 };
       default:
         return { y: 30, x: 0 };
@@ -67,13 +66,13 @@ export function ScrollAnimation({
     hidden: {
       opacity: 0,
       ...getInitialPosition(),
-      filter: "blur(4px)",
+      filter: 'blur(4px)',
     },
     visible: {
       opacity: 1,
       x: 0,
       y: 0,
-      filter: "blur(0px)",
+      filter: 'blur(0px)',
       transition: {
         duration: 0.6,
         ease: [0.22, 1, 0.36, 1] as const,
@@ -87,7 +86,7 @@ export function ScrollAnimation({
         ref={ref}
         variants={containerVariants}
         initial="hidden"
-        animate={isInView ? "visible" : "hidden"}
+        animate={isInView ? 'visible' : 'hidden'}
         className={className}
       >
         {React.Children.map(children, (child) => (
@@ -103,7 +102,7 @@ export function ScrollAnimation({
       initial={{
         opacity: 0,
         ...getInitialPosition(),
-        filter: "blur(4px)",
+        filter: 'blur(4px)',
       }}
       animate={
         isInView
@@ -111,12 +110,12 @@ export function ScrollAnimation({
               opacity: 1,
               x: 0,
               y: 0,
-              filter: "blur(0px)",
+              filter: 'blur(0px)',
             }
           : {
               opacity: 0,
               ...getInitialPosition(),
-              filter: "blur(4px)",
+              filter: 'blur(4px)',
             }
       }
       transition={{

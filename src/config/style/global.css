@@ -1,9 +1,47 @@
 @import 'tailwindcss';
+
 @import './theme.css';
 
 @custom-variant dark (&:is(.dark *));
 
 @plugin 'tailwindcss-animate';
+
+/* Self-hosted fonts (offline-safe). Load latin only to keep payload small. */
+@font-face {
+  font-family: 'Noto Sans Mono Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('@fontsource-variable/noto-sans-mono/files/noto-sans-mono-latin-wght-normal.woff2')
+    format('woff2-variations');
+}
+
+@font-face {
+  font-family: 'JetBrains Mono Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url('@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2')
+    format('woff2-variations');
+}
+
+@font-face {
+  font-family: 'Merriweather';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url('@fontsource/merriweather/files/merriweather-latin-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Merriweather';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url('@fontsource/merriweather/files/merriweather-latin-700-normal.woff2')
+    format('woff2');
+}
 
 @layer base {
   * {
@@ -107,13 +145,4 @@ pre {
 ::view-transition-new(root) {
   animation: none;
   mix-blend-mode: normal;
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
 }

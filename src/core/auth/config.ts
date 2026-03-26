@@ -5,13 +5,13 @@ import { getLocale } from 'next-intl/server';
 import { db } from '@/core/db';
 import { envConfigs } from '@/config';
 import * as schema from '@/config/db/schema';
-import { isCloudflareWorker } from '@/shared/lib/env';
 import { VerifyEmail } from '@/shared/blocks/email/verify-email';
 import {
   getCookieFromCtx,
   getHeaderValue,
   guessLocaleFromAcceptLanguage,
 } from '@/shared/lib/cookie';
+import { isCloudflareWorker } from '@/shared/lib/env';
 import { getUuid } from '@/shared/lib/hash';
 import { getClientIp } from '@/shared/lib/ip';
 import { grantCreditsForNewUser } from '@/shared/models/credit';
@@ -80,12 +80,14 @@ export async function getAuthOptions(configs: Record<string, string>) {
     ...authOptions,
     // Add database connection only when actually needed (runtime)
     // D1 is only available inside Cloudflare Workers runtime (not during build)
-    database: (envConfigs.database_url || (envConfigs.database_provider === 'd1' && isCloudflareWorker))
-      ? drizzleAdapter(db(), {
-          provider: getDatabaseProvider(envConfigs.database_provider),
-          schema: schema,
-        })
-      : null,
+    database:
+      envConfigs.database_url ||
+      (envConfigs.database_provider === 'd1' && isCloudflareWorker)
+        ? drizzleAdapter(db(), {
+            provider: getDatabaseProvider(envConfigs.database_provider),
+            schema: schema,
+          })
+        : null,
     databaseHooks: {
       user: {
         create: {

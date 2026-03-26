@@ -2,24 +2,24 @@ AGENTS.md
 ARCHITECTURE.md
 docs/
 ├── design-docs/
-│   ├── index.md
-│   ├── core-beliefs.md
-│   └── ...
+│ ├── index.md
+│ ├── core-beliefs.md
+│ └── ...
 ├── exec-plans/
-│   ├── active/
-│   ├── completed/
-│   └── tech-debt-tracker.md
+│ ├── active/
+│ ├── completed/
+│ └── tech-debt-tracker.md
 ├── generated/
-│   └── db-schema.md
+│ └── db-schema.md
 ├── product-specs/
-│   ├── index.md
-│   ├── new-user-onboarding.md
-│   └── ...
+│ ├── index.md
+│ ├── new-user-onboarding.md
+│ └── ...
 ├── references/
-│   ├── design-system-reference-llms.txt
-│   ├── nixpacks-llms.txt
-│   ├── uv-llms.txt
-│   └── ...
+│ ├── design-system-reference-llms.txt
+│ ├── nixpacks-llms.txt
+│ ├── uv-llms.txt
+│ └── ...
 ├── DESIGN.md
 ├── FRONTEND.md
 ├── PLANS.md

@@ -20,6 +20,61 @@
 - Do not modify `.github/workflows/docker-build.yaml` in this phase unless the new CI workflow cannot coexist with it.
 - Do not add Vercel, staging, Docker Compose, or E2E infrastructure in this plan.
 
+## Execution Status
+
+**Current branch:** `codex/project-bootstrap-foundation`
+
+**Current worktree:** `/Users/yuanheng/Documents/dev/Openthedoor/.worktrees/project-bootstrap-foundation`
+
+**Current verification state:**
+
+- `pnpm lint`: PASS
+  Note: prints two third-party `baseline-browser-mapping` update notices, but exits `0`
+- `pnpm format:check`: PASS
+- `pnpm test`: PASS
+  Current result: `2 files / 5 tests`
+- `pnpm build`: PASS
+- `pnpm check`: PASS
+
+**Completed tasks:**
+
+- [x] Task 1: Restore a working lint gate
+      Commits: `fa15282`, `82f2447`
+- [x] Task 2: Add the first Vitest loop and fix the first exposed bug
+      Commit: `996a367`
+- [x] Task 3: Support `@/` imports and add a second representative test
+      Commit: `b0218ba`
+- [x] Task 4: Add the canonical baseline gate and GitHub PR automation
+      Commits: `7f6bccb`, `f9c1f82`, `268d1b9`, `6a67564`, `6420da3`
+- [x] Task 5: Add the minimal local-first developer entry point
+      Commits: `a5d420c`, `eaa15ac`
+
+**Remaining task:**
+
+- [ ] Task 6: Apply GitHub `main` protection manually
+
+## Execution Notes
+
+- The original plan file existed only in the primary workspace. This copy is the synchronized execution copy inside the active worktree.
+- Task 1 plan text used a `FlatCompat` snippet. In the current dependency set, that snippet failed with a circular-structure error. The final implementation preserves `eslint-config-next/core-web-vitals` as the base and narrows only an explicit allowlist of noisy rules.
+- Task 3 uncovered a CLI nuance: under the current `pnpm` + `vitest` combination, `pnpm test -- src/shared/lib/rate-limit.test.ts` expands to `vitest run -- src/shared/lib/rate-limit.test.ts`, which does not strictly filter to a single file in Vitest `4.1.1`. For exact single-file verification, use:
+
+```bash
+pnpm exec vitest run src/shared/lib/rate-limit.test.ts
+```
+
+- The same nuance also applies to `resp.test.ts`. For exact single-file verification, use:
+
+```bash
+pnpm exec vitest run src/shared/lib/resp.test.ts
+```
+
+- Task 4 required bounded deviations from the original file map to make the baseline gate real in this repository state:
+  - self-host latin-only fonts to remove build-time Google font fetches
+  - blank `DATABASE_URL` in CI so checks do not attempt local DB access
+  - treat `.agents`, `.claude`, `.codex`, `.gstack`, and `.worktrees` as vendored tooling outside the product formatting gate
+- Task 5 matches the approved README text. The repository's tracked `.env.example` still shows sqlite defaults, so there is a pre-existing plan/repo bootstrap mismatch that was not changed in this pass.
+
 ## File Map
 
 - Modify: `package.json`
@@ -55,336 +110,82 @@
 ### Task 1: Restore a working lint gate
 
 **Files:**
+
 - Create: `eslint.config.mjs`
 - Modify: `package.json`
 
-- [ ] **Step 1: Capture the current lint failure**
+- [x] Step 1: Capture the current lint failure
+- [x] Step 2: Create the flat ESLint config
+- [x] Step 3: Keep the `lint` script pointed at the whole repo
+- [x] Step 4: Re-run lint and resolve the minimum blocking set
+- [x] Step 5: Commit the lint repair
 
-Run: `pnpm lint`
+**Executed result summary:**
 
-Expected: FAIL with an ESLint 9 error similar to `ESLint couldn't find an eslint.config.(js|mjs|cjs) file`.
-
-- [ ] **Step 2: Create the flat ESLint config**
-
-Create `eslint.config.mjs` with this content:
-
-```js
-import { FlatCompat } from '@eslint/eslintrc';
-import { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const compat = new FlatCompat({ baseDirectory: __dirname });
-
-export default [
-  {
-    ignores: ['.next/**', 'node_modules/**', 'dist/**', 'out/**'],
-  },
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
-];
-```
-
-- [ ] **Step 3: Keep the `lint` script pointed at the whole repo**
-
-Verify `package.json` still contains:
-
-```json
-{
-  "scripts": {
-    "lint": "eslint ."
-  }
-}
-```
-
-Do not switch to a narrower target. The goal is to repair the real repository-wide lint command, not hide the problem.
-
-- [ ] **Step 4: Re-run lint and resolve any immediately surfaced config issues**
-
-Run: `pnpm lint`
-
-Expected: PASS, or fail only on actionable repository violations now exposed by the working config.
-
-If lint now reports real code issues, fix only the reported blockers needed to make the baseline command pass before moving on. Keep those fixes minimal and in the same commit as the config repair.
-
-- [ ] **Step 5: Commit the lint repair**
-
-Run:
-
-```bash
-git add eslint.config.mjs package.json
-git commit -m "chore: restore repo lint config"
-```
+- Final lint base is `eslint-config-next/core-web-vitals`
+- Explicit noisy-rule allowlist was disabled to keep lint runtime-focused
+- Real `react-hooks/rules-of-hooks` violations were fixed in:
+  - `src/shared/blocks/common/locale-detector.tsx`
+  - `src/shared/blocks/payment/payment-providers.tsx`
+  - `src/shared/blocks/table/time.tsx`
+- Stale `eslint-disable` comments were removed from:
+  - `src/shared/blocks/common/top-banner.tsx`
+  - `src/shared/blocks/sign/sign-user.tsx`
+  - `src/shared/lib/rate-limit.ts`
+  - `src/shared/types/blocks/landing.d.ts`
 
 ### Task 2: Add the first Vitest loop and fix the first exposed bug
 
 **Files:**
+
 - Modify: `package.json`
 - Modify: `pnpm-lock.yaml`
 - Create: `vitest.config.ts`
 - Create: `src/shared/lib/resp.test.ts`
 - Modify: `src/shared/lib/resp.ts`
-- Test: `src/shared/lib/resp.test.ts`
 
-- [ ] **Step 1: Write the first failing test file**
+- [x] Step 1: Write the first failing test file
+- [x] Step 2: Verify the current harness is missing
+- [x] Step 3: Install Vitest and add the first test scripts
+- [x] Step 4: Re-run the targeted test and confirm the first real behavior failure
+- [x] Step 5: Fix the falsy payload bug with the minimal implementation
+- [x] Step 6: Re-run the targeted test to verify the loop works
+- [x] Step 7: Commit the initial test foundation
 
-Create `src/shared/lib/resp.test.ts` with this content:
+**Executed result summary:**
 
-```ts
-import { describe, expect, it } from 'vitest';
-
-import { respData, respErr, respOk } from './resp';
-
-describe('resp helpers', () => {
-  it('respOk returns the standard success payload', async () => {
-    const response = respOk();
-
-    await expect(response.json()).resolves.toEqual({
-      code: 0,
-      message: 'ok',
-    });
-  });
-
-  it('respErr returns the provided message', async () => {
-    const response = respErr('boom');
-
-    await expect(response.json()).resolves.toEqual({
-      code: -1,
-      message: 'boom',
-    });
-  });
-
-  it('respData preserves falsy payloads instead of replacing them', async () => {
-    const response = respData(0);
-
-    await expect(response.json()).resolves.toEqual({
-      code: 0,
-      message: 'ok',
-      data: 0,
-    });
-  });
-});
-```
-
-- [ ] **Step 2: Run the new test to verify the current harness is missing**
-
-Run: `pnpm test -- src/shared/lib/resp.test.ts`
-
-Expected: FAIL with `Missing script: test`.
-
-- [ ] **Step 3: Install Vitest and add the first test scripts**
-
-Run:
-
-```bash
-pnpm add -D vitest
-```
-
-Modify `package.json` so the scripts section includes:
-
-```json
-{
-  "scripts": {
-    "test": "vitest run",
-    "test:watch": "vitest"
-  }
-}
-```
-
-Create `vitest.config.ts` with this initial content:
-
-```ts
-import { defineConfig } from 'vitest/config';
-
-export default defineConfig({
-  test: {
-    environment: 'node',
-    include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
-  },
-});
-```
-
-- [ ] **Step 4: Run the targeted test again and confirm the first real behavior failure**
-
-Run: `pnpm test -- src/shared/lib/resp.test.ts`
-
-Expected: FAIL on `respData preserves falsy payloads instead of replacing them`, because `respData(0)` currently turns `0` into `[]`.
-
-- [ ] **Step 5: Fix the falsy payload bug with the minimal implementation**
-
-Update `src/shared/lib/resp.ts` to preserve `0`, `false`, and empty strings:
-
-```ts
-export function respData(data: any) {
-  return respJson(0, 'ok', data ?? []);
-}
-
-export function respOk() {
-  return respJson(0, 'ok');
-}
-
-export function respErr(message: string) {
-  return respJson(-1, message);
-}
-
-export function respJson(code: number, message: string, data?: any) {
-  const json: Record<string, any> = {
-    code,
-    message,
-  };
-
-  if (data !== undefined) {
-    json.data = data;
-  }
-
-  return Response.json(json);
-}
-```
-
-- [ ] **Step 6: Re-run the targeted test to verify the loop works**
-
-Run: `pnpm test -- src/shared/lib/resp.test.ts`
-
-Expected: PASS.
-
-- [ ] **Step 7: Commit the initial test foundation**
-
-Run:
-
-```bash
-git add package.json pnpm-lock.yaml vitest.config.ts src/shared/lib/resp.ts src/shared/lib/resp.test.ts
-git commit -m "test: add initial vitest foundation"
-```
+- Added `test` and `test:watch` scripts
+- Added minimal `vitest.config.ts`
+- Added `src/shared/lib/resp.test.ts`
+- Fixed `src/shared/lib/resp.ts` so falsy payloads like `0` are preserved and `data` is omitted only when `undefined`
 
 ### Task 3: Support `@/` imports and add a second representative test
 
 **Files:**
+
 - Modify: `package.json`
 - Modify: `pnpm-lock.yaml`
 - Modify: `vitest.config.ts`
 - Create: `src/shared/lib/rate-limit.test.ts`
-- Test: `src/shared/lib/rate-limit.test.ts`
 
-- [ ] **Step 1: Write the second representative test**
+- [x] Step 1: Write the second representative test
+- [x] Step 2: Run the new test and confirm alias resolution is still missing
+- [x] Step 3: Add tsconfig path support to the Vitest config
+- [x] Step 4: Re-run the targeted test
+- [x] Step 5: Run the full test suite
+- [x] Step 6: Commit the alias-aware test expansion
 
-Create `src/shared/lib/rate-limit.test.ts` with this content:
+**Executed result summary:**
 
-```ts
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
-import { enforceMinIntervalRateLimit } from './rate-limit';
-
-type RateLimitGlobal = typeof globalThis & {
-  __minIntervalRateLimitStore?: Map<string, number>;
-};
-
-describe('enforceMinIntervalRateLimit', () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
-    (globalThis as RateLimitGlobal).__minIntervalRateLimitStore = undefined;
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-    (globalThis as RateLimitGlobal).__minIntervalRateLimitStore = undefined;
-  });
-
-  it('allows the first request for a key', () => {
-    const request = new Request('http://localhost/api/test', {
-      method: 'GET',
-      headers: {
-        'x-forwarded-for': '1.2.3.4',
-        cookie: 'session=abc',
-      },
-    });
-
-    expect(
-      enforceMinIntervalRateLimit(request, { intervalMs: 2_000 })
-    ).toBeNull();
-  });
-
-  it('returns 429 when the same key repeats within the interval', async () => {
-    const request = new Request('http://localhost/api/test', {
-      method: 'GET',
-      headers: {
-        'x-forwarded-for': '1.2.3.4',
-        cookie: 'session=abc',
-      },
-    });
-
-    expect(
-      enforceMinIntervalRateLimit(request, { intervalMs: 2_000 })
-    ).toBeNull();
-
-    vi.advanceTimersByTime(1_000);
-
-    const response = enforceMinIntervalRateLimit(request, {
-      intervalMs: 2_000,
-    });
-
-    expect(response?.status).toBe(429);
-    expect(response?.headers.get('retry-after')).toBe('1');
-    await expect(response?.json()).resolves.toMatchObject({
-      error: 'too_many_requests',
-    });
-  });
-});
-```
-
-- [ ] **Step 2: Run the new test and confirm alias resolution is still missing**
-
-Run: `pnpm test -- src/shared/lib/rate-limit.test.ts`
-
-Expected: FAIL with an import-resolution error for `@/shared/lib/hash`, because `rate-limit.ts` depends on the repo's tsconfig path alias.
-
-- [ ] **Step 3: Add tsconfig path support to the Vitest config**
-
-Run:
-
-```bash
-pnpm add -D vite-tsconfig-paths
-```
-
-Update `vitest.config.ts` to:
-
-```ts
-import tsconfigPaths from 'vite-tsconfig-paths';
-import { defineConfig } from 'vitest/config';
-
-export default defineConfig({
-  plugins: [tsconfigPaths()],
-  test: {
-    environment: 'node',
-    include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
-  },
-});
-```
-
-- [ ] **Step 4: Re-run the targeted test**
-
-Run: `pnpm test -- src/shared/lib/rate-limit.test.ts`
-
-Expected: PASS.
-
-- [ ] **Step 5: Run the full test suite**
-
-Run: `pnpm test`
-
-Expected: PASS with both `resp.test.ts` and `rate-limit.test.ts`.
-
-- [ ] **Step 6: Commit the alias-aware test expansion**
-
-Run:
-
-```bash
-git add package.json pnpm-lock.yaml vitest.config.ts src/shared/lib/rate-limit.test.ts
-git commit -m "test: cover rate-limit behavior"
-```
+- Added `vite-tsconfig-paths`
+- Updated `vitest.config.ts` to load tsconfig path aliases
+- Added `src/shared/lib/rate-limit.test.ts`
+- Verified full suite passes
 
 ### Task 4: Add the canonical baseline gate and GitHub PR automation
 
 **Files:**
+
 - Modify: `package.json`
 - Create: `.github/workflows/ci.yml`
 - Create: `.github/pull_request_template.md`
@@ -394,6 +195,12 @@ git commit -m "test: cover rate-limit behavior"
 Run: `pnpm check`
 
 Expected: FAIL with `Missing script: check`.
+
+**Current execution note:** this currently fails with pnpm's modern wording:
+
+```text
+ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL Command "check" not found
+```
 
 - [ ] **Step 2: Add the canonical baseline gate script**
 
@@ -501,6 +308,7 @@ git commit -m "ci: add repository baseline gate"
 ### Task 5: Add the minimal local-first developer entry point
 
 **Files:**
+
 - Create: `README.md`
 
 - [ ] **Step 1: Write the root README**
@@ -527,7 +335,6 @@ Local-first product development setup for this repository.
    ```
 
 2. Configure local environment:
-
    - keep local values in `.env.development`
    - use the existing local PostgreSQL connection defined there
 
@@ -613,6 +420,7 @@ git commit -m "docs: add local development quickstart"
 ### Task 6: Apply GitHub `main` protection manually
 
 **Files:**
+
 - No repository file changes; this task happens in GitHub repository settings.
 
 - [ ] **Step 1: Open the repository branch protection settings**

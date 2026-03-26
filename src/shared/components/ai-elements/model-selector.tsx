@@ -1,3 +1,5 @@
+import type { ComponentProps } from 'react';
+
 import {
   Command,
   CommandDialog,
@@ -8,14 +10,13 @@ import {
   CommandList,
   CommandSeparator,
   CommandShortcut,
-} from "@/shared/components/ui/command";
+} from '@/shared/components/ui/command';
 import {
   Dialog,
   DialogContent,
   DialogTrigger,
-} from "@/shared/components/ui/dialog";
-import { cn } from "@/shared/lib/utils";
-import type { ComponentProps } from "react";
+} from '@/shared/components/ui/dialog';
+import { cn } from '@/shared/lib/utils';
 
 export type ModelSelectorProps = ComponentProps<typeof Dialog>;
 
@@ -36,7 +37,7 @@ export const ModelSelectorContent = ({
   children,
   ...props
 }: ModelSelectorContentProps) => (
-  <DialogContent className={cn("p-0", className)} {...props}>
+  <DialogContent className={cn('p-0', className)} {...props}>
     <Command className="**:data-[slot=command-input-wrapper]:h-auto">
       {children}
     </Command>
@@ -55,7 +56,7 @@ export const ModelSelectorInput = ({
   className,
   ...props
 }: ModelSelectorInputProps) => (
-  <CommandInput className={cn("h-auto py-3.5", className)} {...props} />
+  <CommandInput className={cn('h-auto py-3.5', className)} {...props} />
 );
 
 export type ModelSelectorListProps = ComponentProps<typeof CommandList>;
@@ -97,66 +98,66 @@ export const ModelSelectorSeparator = (props: ModelSelectorSeparatorProps) => (
 );
 
 export type ModelSelectorLogoProps = Omit<
-  ComponentProps<"img">,
-  "src" | "alt"
+  ComponentProps<'img'>,
+  'src' | 'alt'
 > & {
   provider:
-    | "moonshotai-cn"
-    | "lucidquery"
-    | "moonshotai"
-    | "zai-coding-plan"
-    | "alibaba"
-    | "xai"
-    | "vultr"
-    | "nvidia"
-    | "upstage"
-    | "groq"
-    | "github-copilot"
-    | "mistral"
-    | "vercel"
-    | "nebius"
-    | "deepseek"
-    | "alibaba-cn"
-    | "google-vertex-anthropic"
-    | "venice"
-    | "chutes"
-    | "cortecs"
-    | "github-models"
-    | "togetherai"
-    | "azure"
-    | "baseten"
-    | "huggingface"
-    | "opencode"
-    | "fastrouter"
-    | "google"
-    | "google-vertex"
-    | "cloudflare-workers-ai"
-    | "inception"
-    | "wandb"
-    | "openai"
-    | "zhipuai-coding-plan"
-    | "perplexity"
-    | "openrouter"
-    | "zenmux"
-    | "v0"
-    | "iflowcn"
-    | "synthetic"
-    | "deepinfra"
-    | "zhipuai"
-    | "submodel"
-    | "zai"
-    | "inference"
-    | "requesty"
-    | "morph"
-    | "lmstudio"
-    | "anthropic"
-    | "aihubmix"
-    | "fireworks-ai"
-    | "modelscope"
-    | "llama"
-    | "scaleway"
-    | "amazon-bedrock"
-    | "cerebras"
+    | 'moonshotai-cn'
+    | 'lucidquery'
+    | 'moonshotai'
+    | 'zai-coding-plan'
+    | 'alibaba'
+    | 'xai'
+    | 'vultr'
+    | 'nvidia'
+    | 'upstage'
+    | 'groq'
+    | 'github-copilot'
+    | 'mistral'
+    | 'vercel'
+    | 'nebius'
+    | 'deepseek'
+    | 'alibaba-cn'
+    | 'google-vertex-anthropic'
+    | 'venice'
+    | 'chutes'
+    | 'cortecs'
+    | 'github-models'
+    | 'togetherai'
+    | 'azure'
+    | 'baseten'
+    | 'huggingface'
+    | 'opencode'
+    | 'fastrouter'
+    | 'google'
+    | 'google-vertex'
+    | 'cloudflare-workers-ai'
+    | 'inception'
+    | 'wandb'
+    | 'openai'
+    | 'zhipuai-coding-plan'
+    | 'perplexity'
+    | 'openrouter'
+    | 'zenmux'
+    | 'v0'
+    | 'iflowcn'
+    | 'synthetic'
+    | 'deepinfra'
+    | 'zhipuai'
+    | 'submodel'
+    | 'zai'
+    | 'inference'
+    | 'requesty'
+    | 'morph'
+    | 'lmstudio'
+    | 'anthropic'
+    | 'aihubmix'
+    | 'fireworks-ai'
+    | 'modelscope'
+    | 'llama'
+    | 'scaleway'
+    | 'amazon-bedrock'
+    | 'cerebras'
     | (string & {});
 };
 
@@ -168,14 +169,14 @@ export const ModelSelectorLogo = ({
   <img
     {...props}
     alt={`${provider} logo`}
-    className={cn("size-3", className)}
+    className={cn('size-3', className)}
     height={12}
     src={`https://models.dev/logos/${provider}.svg`}
     width={12}
   />
 );
 
-export type ModelSelectorLogoGroupProps = ComponentProps<"div">;
+export type ModelSelectorLogoGroupProps = ComponentProps<'div'>;
 
 export const ModelSelectorLogoGroup = ({
   className,
@@ -183,18 +184,18 @@ export const ModelSelectorLogoGroup = ({
 }: ModelSelectorLogoGroupProps) => (
   <div
     className={cn(
-      "-space-x-1 flex shrink-0 items-center [&>img]:rounded-full [&>img]:bg-background [&>img]:p-px [&>img]:ring-1 [&>img]:ring-border",
+      '[&>img]:bg-background [&>img]:ring-border flex shrink-0 items-center -space-x-1 [&>img]:rounded-full [&>img]:p-px [&>img]:ring-1',
       className
     )}
     {...props}
   />
 );
 
-export type ModelSelectorNameProps = ComponentProps<"span">;
+export type ModelSelectorNameProps = ComponentProps<'span'>;
 
 export const ModelSelectorName = ({
   className,
   ...props
 }: ModelSelectorNameProps) => (
-  <span className={cn("flex-1 truncate text-left", className)} {...props} />
+  <span className={cn('flex-1 truncate text-left', className)} {...props} />
 );

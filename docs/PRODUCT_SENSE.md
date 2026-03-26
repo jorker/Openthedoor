@@ -3,6 +3,7 @@
 Root product-sense guide.
 
 Use this document to record:
+
 - target user clarity
 - success metrics
 - scope boundaries

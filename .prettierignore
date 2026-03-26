@@ -31,8 +31,6 @@ build
 !src/**/*.d.ts
 
 # Public assets
-public
-
 # Config files that shouldn't be formatted
 .prettierrc
 .prettierrc.*
@@ -45,5 +43,8 @@ prettier.config.*
 # Other
 coverage
 .DS_Store
-
-src/shared/components
+.agents
+.claude
+.codex
+.gstack
+.worktrees

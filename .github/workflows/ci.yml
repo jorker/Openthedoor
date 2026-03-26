@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  pull_request:
+    branches: ['main']
+  push:
+    branches: ['main']
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prepare CI environment
+        run: |
+          cp .env.example .env.production
+          printf '\nAUTH_SECRET="ci-auth-secret"\n' >> .env.production
+          sed -i '/^DATABASE_URL=/d' .env.production
+          printf '\nDATABASE_URL=""\n' >> .env.production
+
+      - name: Run baseline checks
+        run: pnpm check

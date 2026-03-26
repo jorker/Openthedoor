@@ -3,6 +3,7 @@
 Status: placeholder.
 
 Capture here:
+
 - first-run user journey
 - claim and binding flow
 - role selection
