@@ -45,7 +45,7 @@ From the current repository state:
 - Existing environment files: `.env.example`, `.env.development`
 - Existing local DB convention: PostgreSQL via `.env.development`
 - Existing GitHub workflow: Docker image build workflow only
-- Missing explicit quality gates for this phase: `typecheck`, `test`, `check`
+- Missing explicit quality gates for this phase: `test`, `check`
 - Missing project test foundation: no confirmed Vitest/Jest setup and no committed project test files
 
 This design should preserve what already exists and only add the missing pieces.
@@ -76,14 +76,12 @@ Required checks:
 
 - `lint`
 - `format:check`
-- `typecheck`
 - `test`
 - `build`
 
 Required outcome:
 
 - keep existing `lint`, `build`, and `format:check`
-- add missing `typecheck`
 - add missing `test`
 - add missing `check` command that runs the agreed baseline checks
 
@@ -180,7 +178,7 @@ Required outcome:
 The implementation plan for this design should cover these execution items:
 
 1. Audit the template's existing local-development and quality-gate setup.
-2. Add missing baseline scripts: `typecheck`, `test`, `check`.
+2. Add missing baseline scripts: `test`, `check`.
 3. Install and configure the minimum Vitest foundation.
 4. Add a small set of representative tests so the test setup is real, not theoretical.
 5. Add GitHub PR automation to run the baseline gate.
