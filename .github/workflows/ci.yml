@@ -32,6 +32,8 @@ jobs:
         run: |
           cp .env.example .env.production
           printf '\nAUTH_SECRET="ci-auth-secret"\n' >> .env.production
+          sed -i '/^DATABASE_URL=/d' .env.production
+          printf '\nDATABASE_URL=""\n' >> .env.production
 
       - name: Run baseline checks
         run: pnpm check
