@@ -1,4 +1,5 @@
 Primary docs:
+
 - `docs/PRODUCT_SENSE.md`: users, value, scope, priorities, metrics
 - `docs/DESIGN.md`: interaction model and UX principles
 - `docs/product-specs/`: stable capability behavior and business rules
@@ -10,6 +11,7 @@ Primary docs:
 - `docs/generated/db-schema.md`: current data model reference
 - `docs/RELIABILITY.md`: failure, consistency, recovery rules
 - `docs/SECURITY.md`: auth, privacy, abuse-prevention rules
+
 ## Compact Instructions
 
 When compressing, preserve in priority order:

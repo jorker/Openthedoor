@@ -11,6 +11,7 @@ Primary docs:
 - `docs/generated/db-schema.md`: current data model reference
 - `docs/RELIABILITY.md`: failure, consistency, recovery rules
 - `docs/SECURITY.md`: auth, privacy, abuse-prevention rules
+
 ## Compact Instructions
 
 When compressing, preserve in priority order:
