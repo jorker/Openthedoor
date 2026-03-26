@@ -16,7 +16,7 @@
 
 ## Working Tree Guardrails
 
-- Do not edit `AGENTS.md` or `CLAUDE.md` in this plan.
+- Do not edit `AGENTS.md` or `CLAUDE.md` in this plan; both are already dirty in the current workspace.
 - Do not modify `.github/workflows/docker-build.yaml` in this phase unless the new CI workflow cannot coexist with it.
 - Do not add Vercel, staging, Docker Compose, or E2E infrastructure in this plan.
 
@@ -30,10 +30,11 @@
 
 - `pnpm lint`: PASS
   Note: prints two third-party `baseline-browser-mapping` update notices, but exits `0`
+- `pnpm format:check`: PASS
 - `pnpm test`: PASS
   Current result: `2 files / 5 tests`
-- `pnpm check`: FAIL
-  Current result: `ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL Command "check" not found`
+- `pnpm build`: PASS
+- `pnpm check`: PASS
 
 **Completed tasks:**
 
@@ -43,10 +44,14 @@
       Commit: `996a367`
 - [x] Task 3: Support `@/` imports and add a second representative test
       Commit: `b0218ba`
+- [x] Task 4: Add the canonical baseline gate and GitHub PR automation
+      Commits: `7f6bccb`, `f9c1f82`, `268d1b9`, `6a67564`, `6420da3`
+- [x] Task 5: Add the minimal local-first developer entry point
+      Commits: `a5d420c`, `eaa15ac`
 
-**In-progress task:**
+**Remaining task:**
 
-- [ ] Task 4: Add the canonical baseline gate and GitHub PR automation
+- [ ] Task 6: Apply GitHub `main` protection manually
 
 ## Execution Notes
 
@@ -63,6 +68,12 @@ pnpm exec vitest run src/shared/lib/rate-limit.test.ts
 ```bash
 pnpm exec vitest run src/shared/lib/resp.test.ts
 ```
+
+- Task 4 required bounded deviations from the original file map to make the baseline gate real in this repository state:
+  - self-host latin-only fonts to remove build-time Google font fetches
+  - blank `DATABASE_URL` in CI so checks do not attempt local DB access
+  - treat `.agents`, `.claude`, `.codex`, `.gstack`, and `.worktrees` as vendored tooling outside the product formatting gate
+- Task 5 matches the approved README text. The repository's tracked `.env.example` still shows sqlite defaults, so there is a pre-existing plan/repo bootstrap mismatch that was not changed in this pass.
 
 ## File Map
 
