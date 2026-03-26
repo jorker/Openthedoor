@@ -101,7 +101,6 @@ export function TopBanner({
     if (isDismissed()) return;
 
     setShowBanner(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled]);
 
   // Adjust header and layout spacing when banner visibility changes

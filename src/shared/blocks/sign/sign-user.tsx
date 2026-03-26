@@ -112,7 +112,6 @@ export function SignUser({
       // hasn't re-fetched yet, which would incorrectly clear the user.
       setUser(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionUser?.id, (sessionUser as any)?.email, user?.id, isPending]);
 
   // Fallback: if the session cookie is present but useSession lags, do a single refresh.
@@ -136,7 +135,6 @@ export function SignUser({
         // ignore
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPending, sessionUser, user?.id]);
 
   return (

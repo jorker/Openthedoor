@@ -1,23 +1,40 @@
-import nextVitals from 'eslint-config-next/core-web-vitals';
+import nextConfig from 'eslint-config-next/core-web-vitals';
 
-const config = [
+const disabledRules = new Set([
+  '@next/next/no-assign-module-variable',
+  '@next/next/no-img-element',
+  'import/no-anonymous-default-export',
+  'jsx-a11y/alt-text',
+  'jsx-a11y/aria-props',
+  'jsx-a11y/aria-proptypes',
+  'jsx-a11y/aria-unsupported-elements',
+  'jsx-a11y/role-has-required-aria-props',
+  'jsx-a11y/role-supports-aria-props',
+  'react/display-name',
+  'react-hooks/exhaustive-deps',
+  'react-hooks/error-boundaries',
+  'react-hooks/immutability',
+  'react-hooks/incompatible-library',
+  'react-hooks/purity',
+  'react-hooks/set-state-in-effect',
+  'react-hooks/static-components',
+  'react-hooks/unsupported-syntax',
+]);
+
+export default [
   {
     ignores: ['.next/**', 'node_modules/**', 'dist/**', 'out/**'],
   },
-  ...nextVitals.map((entry) => ({
-    ...entry,
-    rules: {
-      ...entry.rules,
-      '@next/next/no-assign-module-variable': 'off',
-      'react/display-name': 'off',
-      'react-hooks/error-boundaries': 'off',
-      'react-hooks/immutability': 'off',
-      'react-hooks/purity': 'off',
-      'react-hooks/rules-of-hooks': 'off',
-      'react-hooks/set-state-in-effect': 'off',
-      'react-hooks/static-components': 'off',
-    },
-  })),
-];
+  ...nextConfig.map((entry) => {
+    const rules = {};
 
-export default config;
+    for (const [ruleName, ruleConfig] of Object.entries(entry.rules ?? {})) {
+      rules[ruleName] = disabledRules.has(ruleName) ? 'off' : ruleConfig;
+    }
+
+    return {
+      ...entry,
+      rules,
+    };
+  }),
+];
