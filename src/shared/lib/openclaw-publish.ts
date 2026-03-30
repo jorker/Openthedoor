@@ -79,6 +79,36 @@ function forbiddenFieldError(
   };
 }
 
+function collectForbiddenFieldErrors(
+  value: unknown,
+  path: string
+): OpenclawPublishError[] {
+  if (Array.isArray(value)) {
+    return value.flatMap((item, index) =>
+      collectForbiddenFieldErrors(item, `${path}[${index}]`)
+    );
+  }
+
+  if (!isPlainObject(value)) {
+    return [];
+  }
+
+  const errors: OpenclawPublishError[] = [];
+
+  for (const [key, nestedValue] of Object.entries(value)) {
+    const fieldPath = `${path}.${key}`;
+
+    if (forbiddenServerFields.has(key)) {
+      errors.push(forbiddenFieldError(fieldPath, key));
+      continue;
+    }
+
+    errors.push(...collectForbiddenFieldErrors(nestedValue, fieldPath));
+  }
+
+  return errors;
+}
+
 export function parseOpenclawPublishBearerToken(
   authorizationHeader: string | null
 ): string | null {
@@ -218,11 +248,7 @@ export function validateOpenclawPublishEnvelope(
         'Set `payload` to a JSON object. If the user gave you a list or plain text, ask follow-up questions and convert it into named fields instead of guessing.',
     });
   } else {
-    for (const key of Object.keys(body.payload)) {
-      if (forbiddenServerFields.has(key)) {
-        errors.push(forbiddenFieldError(`payload.${key}`, key));
-      }
-    }
+    errors.push(...collectForbiddenFieldErrors(body.payload, 'payload'));
   }
 
   for (const key of Object.keys(body)) {

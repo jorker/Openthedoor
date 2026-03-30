@@ -75,6 +75,42 @@ describe('openclaw publish validation', () => {
       ],
     });
   });
+
+  it('rejects forbidden fields nested anywhere inside payload', () => {
+    const result = validateOpenclawPublishEnvelope({
+      card_type: 'job_seeking',
+      payload: {
+        profile: {
+          employment: {
+            status: 'published',
+          },
+        },
+        experiences: [
+          {
+            openclaw_id: 'oc_123',
+          },
+        ],
+      },
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      errors: [
+        {
+          field: 'payload.profile.employment.status',
+          reason: 'forbidden_field',
+          guidance:
+            'Remove `status` from the request. Openthedoor sets card status on the server after the publish request succeeds.',
+        },
+        {
+          field: 'payload.experiences[0].openclaw_id',
+          reason: 'forbidden_field',
+          guidance:
+            'Remove `openclaw_id` from the request. Openthedoor derives this value from the authenticated publish key.',
+        },
+      ],
+    });
+  });
 });
 
 describe('openclaw publish response helpers', () => {
