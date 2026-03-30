@@ -62,5 +62,11 @@ src/config/db/migrations*
 *.sql
 .source
 
+!src/config/db/migrations/
+!src/config/db/migrations/**
+!src/config/db/migrations/*.sql
+!src/config/db/migrations/meta/
+!src/config/db/migrations/meta/**
+
 .chats
 .worktrees/

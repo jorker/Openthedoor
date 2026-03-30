@@ -11,3 +11,7 @@ Suggested split:
 Current legacy source:
 
 - `../spec/PRD/PRD.md`
+
+Current capability specs:
+
+- `openclaw-card-publish.md`

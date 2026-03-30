@@ -104,11 +104,11 @@ New feature boundaries expected from this plan:
 - `src/shared/lib/resp.ts`
 - one existing authenticated API route under `src/app/api/`
 
-- [ ] Confirm the minimum engineering gates available today for migrations, lint, and backend verification.
-- [ ] Decide whether feature work can proceed immediately or whether a bootstrap-foundation subset must land first.
-- [ ] Decide the schema maintenance policy for this slice: PostgreSQL-only or all shipped dialect schemas.
-- [ ] Decide whether this feature will reuse `resp` safely, patch it first, or return a feature-local response shape.
-- [ ] Record all four decisions in `Technical Decision Log` before touching feature modules.
+- [x] Confirm the minimum engineering gates available today for migrations, lint, and backend verification.
+- [x] Decide whether feature work can proceed immediately or whether a bootstrap-foundation subset must land first.
+- [x] Decide the schema maintenance policy for this slice: PostgreSQL-only or all shipped dialect schemas.
+- [x] Decide whether this feature will reuse `resp` safely, patch it first, or return a feature-local response shape.
+- [x] Record all four decisions in `Technical Decision Log` before touching feature modules.
 
 ### Task 2: Openclaw Publish Identity Module
 
@@ -130,12 +130,12 @@ New feature boundaries expected from this plan:
 - own the publish key directly
 - remain separate from `user` auth and existing `apikey.userId` ownership
 
-- [ ] Add the minimal Openclaw publisher schema to the chosen database schema boundary.
-- [ ] Define the smallest persistence model needed to look up a publisher by publish key and to create seed data.
-- [ ] Keep the feature's publish identity independent from session auth and user-owned API keys.
-- [ ] Decide how publish keys are stored and compared for this slice, based on current repository conventions.
-- [ ] Add the seed path for one test publisher and one publish key.
-- [ ] Record any identity or credential-handling tradeoff in `Technical Decision Log`.
+- [x] Add the minimal Openclaw publisher schema to the chosen database schema boundary.
+- [x] Define the smallest persistence model needed to look up a publisher by publish key and to create seed data.
+- [x] Keep the feature's publish identity independent from session auth and user-owned API keys.
+- [x] Decide how publish keys are stored and compared for this slice, based on current repository conventions.
+- [x] Add the seed path for one test publisher and one publish key.
+- [x] Record any identity or credential-handling tradeoff in `Technical Decision Log`.
 
 ### Task 3: Card Storage Module
 
@@ -156,12 +156,12 @@ New feature boundaries expected from this plan:
 - generate server-owned fields
 - support create only
 
-- [ ] Add the minimal card schema with only the fields approved by the spec.
-- [ ] Decide how `payload_json` should be stored in the current DB conventions.
-- [ ] Add the smallest card persistence model needed for create and basic lookup verification.
-- [ ] Ensure the module, not the caller, owns generation of `card_id`, `status`, and timestamps.
-- [ ] Keep update, pause, close, and other lifecycle behavior out of this slice.
-- [ ] Record any storage-format or ID-generation decision in `Technical Decision Log`.
+- [x] Add the minimal card schema with only the fields approved by the spec.
+- [x] Decide how `payload_json` should be stored in the current DB conventions.
+- [x] Add the smallest card persistence model needed for create and basic lookup verification.
+- [x] Ensure the module, not the caller, owns generation of `card_id`, `status`, and timestamps.
+- [x] Keep update, pause, close, and other lifecycle behavior out of this slice.
+- [x] Record any storage-format or ID-generation decision in `Technical Decision Log`.
 
 ### Task 4: Publish Validation and Error Contract Module
 
@@ -181,13 +181,13 @@ New feature boundaries expected from this plan:
 - reject forbidden server-owned fields
 - return structured errors with `field`, `reason`, and `guidance`
 
-- [ ] Decide where feature-local validation should live based on existing repository patterns.
-- [ ] Implement strict envelope validation for `card_type` and `payload`.
-- [ ] Implement forbidden-field checks for `card_id`, `openclaw_id`, `status`, `created_at`, and `updated_at`.
-- [ ] Keep payload business semantics intentionally loose.
-- [ ] Define guidance templates for each supported error reason, with explicit "ask the user" and "do not guess" language where relevant.
-- [ ] Verify the final error shape stays fully English-keyed.
-- [ ] Record validation-boundary and error-contract decisions in `Technical Decision Log`.
+- [x] Decide where feature-local validation should live based on existing repository patterns.
+- [x] Implement strict envelope validation for `card_type` and `payload`.
+- [x] Implement forbidden-field checks for `card_id`, `openclaw_id`, `status`, `created_at`, and `updated_at`.
+- [x] Keep payload business semantics intentionally loose.
+- [x] Define guidance templates for each supported error reason, with explicit "ask the user" and "do not guess" language where relevant.
+- [x] Verify the final error shape stays fully English-keyed.
+- [x] Record validation-boundary and error-contract decisions in `Technical Decision Log`.
 
 ### Task 5: Publish API Module
 
@@ -212,14 +212,14 @@ New feature boundaries expected from this plan:
 - persist the card
 - return success or structured failure
 
-- [ ] Create the route boundary for `POST /api/openclaw/cards/publish`.
-- [ ] Authenticate `Authorization: Bearer <api_key>` against the Openclaw publish identity.
-- [ ] Reject missing or invalid auth without touching user session logic.
-- [ ] Validate the request envelope and forbidden fields before persistence.
-- [ ] Generate all server-owned fields on the backend.
-- [ ] Persist cards through the feature's model boundary instead of direct route-level DB access.
-- [ ] Return the minimal success payload approved in the spec.
-- [ ] Record any route-shape or auth-boundary adjustments in `Technical Decision Log`.
+- [x] Create the route boundary for `POST /api/openclaw/cards/publish`.
+- [x] Authenticate `Authorization: Bearer <api_key>` against the Openclaw publish identity.
+- [x] Reject missing or invalid auth without touching user session logic.
+- [x] Validate the request envelope and forbidden fields before persistence.
+- [x] Generate all server-owned fields on the backend.
+- [x] Persist cards through the feature's model boundary instead of direct route-level DB access.
+- [x] Return the minimal success payload approved in the spec.
+- [x] Record any route-shape or auth-boundary adjustments in `Technical Decision Log`.
 
 ### Task 6: Seed and Local Integration Module
 
@@ -239,11 +239,11 @@ New feature boundaries expected from this plan:
 - let a developer create one repeatable local Openclaw publish test setup
 - provide a known API key for real Openclaw integration
 
-- [ ] Decide whether the seed path should be idempotent, resettable, or explicitly single-use.
-- [ ] Add the smallest script or documented path to create one test publisher and one publish key.
-- [ ] Ensure local execution order is explicit: migration first, seed second, publish test third.
-- [ ] Verify that the seeded identity can publish both supported card types.
-- [ ] Record any seed-repeatability caveats or cleanup steps in `Technical Decision Log`.
+- [x] Decide whether the seed path should be idempotent, resettable, or explicitly single-use.
+- [x] Add the smallest script or documented path to create one test publisher and one publish key.
+- [x] Ensure local execution order is explicit: migration first, seed second, publish test third.
+- [x] Verify that the seeded identity can publish both supported card types.
+- [x] Record any seed-repeatability caveats or cleanup steps in `Technical Decision Log`.
 
 ### Task 7: Openclaw Contract Module
 
@@ -262,12 +262,12 @@ New feature boundaries expected from this plan:
 
 - document the machine-facing contract Openclaw needs in order to publish successfully
 
-- [ ] Create a dedicated product-spec document for the Openclaw publish contract.
-- [ ] Document the request envelope, supported `card_type` values, auth header, forbidden fields, success shape, and error shape.
-- [ ] Make the document explicit that payload semantics are intentionally loose in phase one.
-- [ ] Make the document explicit that Openclaw must ask the user rather than guess missing information.
-- [ ] Keep the contract documentation aligned with the implementation, not with future-state schema ambitions.
-- [ ] Record any documentation boundary decisions in `Technical Decision Log`.
+- [x] Create a dedicated product-spec document for the Openclaw publish contract.
+- [x] Document the request envelope, supported `card_type` values, auth header, forbidden fields, success shape, and error shape.
+- [x] Make the document explicit that payload semantics are intentionally loose in phase one.
+- [x] Make the document explicit that Openclaw must ask the user rather than guess missing information.
+- [x] Keep the contract documentation aligned with the implementation, not with future-state schema ambitions.
+- [x] Record any documentation boundary decisions in `Technical Decision Log`.
 
 ### Task 8: Final Verification and Scope Audit
 
@@ -282,11 +282,11 @@ New feature boundaries expected from this plan:
 - new feature modules created by this plan
 - `docs/exec-plans/tech-debt-tracker.md`
 
-- [ ] Run the agreed migration path and confirm the new schema objects exist.
-- [ ] Run the agreed local verification path for invalid auth, invalid envelope, forbidden fields, and successful publish for both card types.
-- [ ] Verify that no user onboarding, session-auth coupling, UI flow, or update-card behavior was added.
-- [ ] Add any newly discovered follow-up items to `docs/exec-plans/tech-debt-tracker.md`.
-- [ ] Review `Technical Decision Log` and make sure it captures real implementation choices and failed attempts.
+- [x] Run the agreed migration path and confirm the new schema objects exist.
+- [x] Run the agreed local verification path for invalid auth, invalid envelope, forbidden fields, and successful publish for both card types.
+- [x] Verify that no user onboarding, session-auth coupling, UI flow, or update-card behavior was added.
+- [x] Add any newly discovered follow-up items to `docs/exec-plans/tech-debt-tracker.md`.
+- [x] Review `Technical Decision Log` and make sure it captures real implementation choices and failed attempts.
 
 ## Verification Gates
 
@@ -343,13 +343,18 @@ Record these items during execution and keep them updated:
 - Defining a strict detailed payload schema before the publish loop is proven.
 - Writing file-level code scaffolding into the implementation plan.
 
-### Execution-Time Entries To Add
+### Execution-Time Entries
 
-- Decisions about schema-dialect coverage.
-- Decisions about response-helper reuse versus feature-local response handling.
-- Decisions about publish-key storage and comparison.
-- Decisions about `payload_json` storage format.
-- Any failed implementation path that caused rework or revealed a hidden dependency.
+- Engineering gates available at execution time were `pnpm check`, targeted Vitest tests, `pnpm exec tsx scripts/verify-openclaw-publish.ts`, and the repository migration commands. Bootstrap-foundation had already landed on `main`, so no prerequisite subset was needed before feature work.
+- Schema coverage for this slice is PostgreSQL-only. `src/config/db/schema.ts`, local README guidance, the active local environment, and the repository migration flow all point to PostgreSQL as the canonical runtime and migration target for this feature.
+- The feature does not reuse `src/shared/lib/resp.ts`. Openclaw publish responses use feature-local `Response.json` helpers so structured `errors` payloads do not change the broader app response contract.
+- Publish keys are stored directly on `openclaw_publisher` and compared by exact plaintext match, following the repository's existing user API key convention for this minimal seeded slice. This keeps the Openclaw identity plane separate without introducing a new credential subsystem mid-slice.
+- `payload_json` is stored as a JSON-stringified `text` column, matching the repository's current convention of storing flexible JSON blobs in text-backed fields rather than introducing a new JSONB pattern for one narrow feature.
+- `card_id` is generated as a prefixed random token inside the card model, and `status` plus timestamps are assigned inside the model rather than in the route, preserving a create-only server-owned persistence boundary.
+- The local seed path is idempotent by publisher identity and rotates the publish key unless `OPENCLAW_TEST_PUBLISH_KEY` is explicitly set. This keeps repeatable setup simple while still allowing a stable key when a real Openclaw needs one across runs.
+- The product-spec boundary stays narrowly machine-facing. `docs/product-specs/openclaw-card-publish.md` documents only the current endpoint, auth, envelope, forbidden fields, and recovery rules instead of future onboarding or richer payload ambitions.
+- A hidden dependency surfaced during migration verification: the repository did not have tracked PostgreSQL migration artifacts on this branch baseline, so Drizzle generated a full baseline migration. Applying that against the existing local development database would have collided with already-present tables, so verification used a fresh temporary PostgreSQL database to prove the checked-in migration path safely.
+- No additional tech-debt items were added beyond the tracker entries that already existed for identity separation, payload semantics, search/indexing, onboarding replacement, and lifecycle follow-up.
 
 ## Done Criteria
 
