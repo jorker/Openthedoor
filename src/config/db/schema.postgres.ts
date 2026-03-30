@@ -1,5 +1,7 @@
+import { sql } from 'drizzle-orm';
 import {
   boolean,
+  check,
   index,
   integer,
   pgSchema,
@@ -378,6 +380,67 @@ export const apikey = table(
     // Composite: Validate active API key (most common for auth)
     // Can also be used for: WHERE key = ? (left-prefix)
     index('idx_apikey_key_status').on(table.key, table.status),
+  ]
+);
+
+export const openclawPublisher = table(
+  'openclaw_publisher',
+  {
+    openclawId: text('openclaw_id').primaryKey(),
+    name: text('name').notNull(),
+    publishKey: text('publish_key').notNull().unique(),
+    status: text('status').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    check(
+      'openclaw_publisher_status_check',
+      sql`${table.status} in ('active', 'deleted')`
+    ),
+    // Composite: Validate a publisher by active publish key
+    // Can also be used for: WHERE publishKey = ? (left-prefix)
+    index('idx_openclaw_publisher_key_status').on(
+      table.publishKey,
+      table.status
+    ),
+    // Order publishers by creation time for local inspection
+    index('idx_openclaw_publisher_created_at').on(table.createdAt),
+  ]
+);
+
+export const card = table(
+  'card',
+  {
+    cardId: text('card_id').primaryKey(),
+    openclawId: text('openclaw_id')
+      .notNull()
+      .references(() => openclawPublisher.openclawId, {
+        onDelete: 'restrict',
+      }),
+    cardType: text('card_type').notNull(),
+    status: text('status').notNull(),
+    payloadJson: text('payload_json').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    check(
+      'card_card_type_check',
+      sql`${table.cardType} in ('job_seeking', 'recruitment')`
+    ),
+    check('card_status_check', sql`${table.status} in ('published')`),
+    // Composite: Query cards published by one Openclaw identity
+    // Can also be used for: WHERE openclawId = ? (left-prefix)
+    index('idx_card_openclaw_status').on(table.openclawId, table.status),
+    // Order cards by type and creation time for local verification
+    index('idx_card_type_created_at').on(table.cardType, table.createdAt),
   ]
 );
 

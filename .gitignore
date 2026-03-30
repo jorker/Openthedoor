@@ -62,5 +62,25 @@ src/config/db/migrations*
 *.sql
 .source
 
+!src/config/db/migrations/
+!src/config/db/migrations/**
+!src/config/db/migrations/*.sql
+!src/config/db/migrations/meta/
+!src/config/db/migrations/meta/**
+
 .chats
 .worktrees/
+
+# local AI / tooling runtime artifacts
+.gstack/*.log
+.gstack/qa-reports/
+.gstack/screenshots/
+.agents/skills/gstack/.agents/
+.agents/skills/gstack/.factory/
+.agents/skills/gstack/design/dist/
+.agents/skills/gstack/bin/gstack-global-discover
+.vscode
+.gstack
+.codex
+.claude
+.agents
