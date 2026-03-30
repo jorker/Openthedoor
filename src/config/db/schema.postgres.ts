@@ -1,5 +1,7 @@
+import { sql } from 'drizzle-orm';
 import {
   boolean,
+  check,
   index,
   integer,
   pgSchema,
@@ -395,6 +397,10 @@ export const openclawPublisher = table(
       .notNull(),
   },
   (table) => [
+    check(
+      'openclaw_publisher_status_check',
+      sql`${table.status} in ('active', 'deleted')`
+    ),
     // Composite: Validate a publisher by active publish key
     // Can also be used for: WHERE publishKey = ? (left-prefix)
     index('idx_openclaw_publisher_key_status').on(
@@ -425,6 +431,11 @@ export const card = table(
       .notNull(),
   },
   (table) => [
+    check(
+      'card_card_type_check',
+      sql`${table.cardType} in ('job_seeking', 'recruitment')`
+    ),
+    check('card_status_check', sql`${table.status} in ('published')`),
     // Composite: Query cards published by one Openclaw identity
     // Can also be used for: WHERE openclawId = ? (left-prefix)
     index('idx_card_openclaw_status').on(table.openclawId, table.status),

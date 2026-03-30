@@ -1,6 +1,6 @@
 {
-  "id": "bdd8496c-d309-4782-a273-646da7d572e0",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "2aafd263-f6b7-4839-9ce1-adf1f40eb792",
+  "prevId": "bdd8496c-d309-4782-a273-646da7d572e0",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -427,6 +427,125 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.card": {
+      "name": "card",
+      "schema": "",
+      "columns": {
+        "card_id": {
+          "name": "card_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "openclaw_id": {
+          "name": "openclaw_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "card_type": {
+          "name": "card_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "payload_json": {
+          "name": "payload_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_card_openclaw_status": {
+          "name": "idx_card_openclaw_status",
+          "columns": [
+            {
+              "expression": "openclaw_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_card_type_created_at": {
+          "name": "idx_card_type_created_at",
+          "columns": [
+            {
+              "expression": "card_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "card_openclaw_id_openclaw_publisher_openclaw_id_fk": {
+          "name": "card_openclaw_id_openclaw_publisher_openclaw_id_fk",
+          "tableFrom": "card",
+          "tableTo": "openclaw_publisher",
+          "columnsFrom": ["openclaw_id"],
+          "columnsTo": ["openclaw_id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "card_card_type_check": {
+          "name": "card_card_type_check",
+          "value": "\"card\".\"card_type\" in ('job_seeking', 'recruitment')"
+        },
+        "card_status_check": {
+          "name": "card_status_check",
+          "value": "\"card\".\"status\" in ('published')"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.chat": {
@@ -922,6 +1041,105 @@
       },
       "policies": {},
       "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.openclaw_publisher": {
+      "name": "openclaw_publisher",
+      "schema": "",
+      "columns": {
+        "openclaw_id": {
+          "name": "openclaw_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "publish_key": {
+          "name": "publish_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_openclaw_publisher_key_status": {
+          "name": "idx_openclaw_publisher_key_status",
+          "columns": [
+            {
+              "expression": "publish_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_openclaw_publisher_created_at": {
+          "name": "idx_openclaw_publisher_created_at",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "openclaw_publisher_publish_key_unique": {
+          "name": "openclaw_publisher_publish_key_unique",
+          "nullsNotDistinct": false,
+          "columns": ["publish_key"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "openclaw_publisher_status_check": {
+          "name": "openclaw_publisher_status_check",
+          "value": "\"openclaw_publisher\".\"status\" in ('active', 'deleted')"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.order": {
